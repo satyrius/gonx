@@ -1,40 +1,47 @@
 package gonx
 
 import (
+	"io"
 	"reflect"
 	"strings"
 	"testing"
 )
 
-func TestFormatRegexp(t *testing.T) {
+func TestGetFormatRegexp(t *testing.T) {
 	format := "$remote_addr [$time_local] \"$request\""
+	reader := NewReader(strings.NewReader(""), format)
 	expected := `^(?P<remote_addr>[^ ]+) \[(?P<time_local>[^]]+)\] "(?P<request>[^"]+)"$`
-	if re := FormatRegexp(format); re.String() != expected {
+	if re := reader.GetFormatRegexp(); re.String() != expected {
 		t.Errorf("Wrong RE '%v'", re)
 	}
 }
 
 func TestGetRecord(t *testing.T) {
 	format := "$remote_addr [$time_local] \"$request\""
-	line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`
+	file := strings.NewReader(`89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`)
+	reader := NewReader(file, format)
 	expected := map[string]string{
 		"remote_addr": "89.234.89.123",
 		"time_local":  "08/Nov/2013:13:39:18 +0000",
 		"request":     "GET /api/foo/bar HTTP/1.1",
 	}
-	rec, err := GetRecord(line, FormatRegexp(format))
+	rec, err := reader.Read()
 	if err != nil {
-		t.Errorf("Got unexpected error %v", err)
+		t.Error(err)
 	}
 	if !reflect.DeepEqual(rec, expected) {
 		t.Errorf("Get invalid record %v", rec)
+	}
+	if _, err := reader.Read(); err != io.EOF {
+		t.Error("End of file expected")
 	}
 }
 
 func TestInvalidLineFormat(t *testing.T) {
 	format := "$remote_addr [$time_local] \"$request\""
-	line := `89.234.89.123 - - [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`
-	if rec, err := GetRecord(line, FormatRegexp(format)); err == nil {
+	file := strings.NewReader(`89.234.89.123 - - [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`)
+	reader := NewReader(file, format)
+	if rec, err := reader.Read(); err == nil {
 		t.Errorf("Invalid record error expected, but get the record %+v", rec)
 	}
 }
@@ -54,11 +61,12 @@ func TestReadLogFormatFromFile(t *testing.T) {
                                   '"$http_range" "$sent_http_content_range"';
         }
     `)
-	format, err := NginxLogFormat(conf, "main")
+	file := strings.NewReader("")
+	reader, err := NewNginxReader(file, conf, "main")
 	if err != nil {
 		t.Error(err)
 	}
-	if format != expected {
+	if format := reader.GetFormat(); format != expected {
 		t.Errorf("Wrong format was read from conf file \n%v\nExpected\n%v", format, expected)
 	}
 }
