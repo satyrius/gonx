@@ -12,7 +12,7 @@ Common constructor `NewReader` gets opened file (`io.Reader`) and log format (`s
 	
 `NewNginxReader` provides mo magic. It gets nginx config file (`io.Reader`) as second argument and `log_format` name (`string`) a third.
 
-	reader := gonx.NewNginxReader(file, nginxConfig, format)
+	reader := gonx.NewNginxReader(file, nginxConfig, format_name)
 
 `Reader` implements `io.Reader`. Here is example usage
 
@@ -25,3 +25,17 @@ Common constructor `NewReader` gets opened file (`io.Reader`) and log format (`s
 	}
 
 See more examples in `example/*.go` sources.
+
+## Format
+
+As I said above this library is primary for nginx access log parsing, but it can be configured to parse any other format. `NewReader` accepts `format` argument, it will be transformed to regular expression and used for log line by line parsing. Format is nginx-like, here is example
+
+	`$remote_addr [$time_local] "$request"`
+	
+It should contain variables inn form `$name`. The regular expression will be created using this string format representation
+
+	`^(?P<remote_addr>[^ ]+) \[(?P<time_local>[^]]+)\] "(?P<request>[^"]+)"$`
+	
+If log line does not match this format, the `Reader.Read` returns an `error`. Otherwise you will get the record of type `map[string][string]` with `remote_addr`, `time_local` and `request` keys filled with parsed values.
+
+
