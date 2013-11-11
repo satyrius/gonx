@@ -72,9 +72,11 @@ func (r *Reader) GetFormatRegexp() *regexp.Regexp {
 	return r.re
 }
 
+type Entry map[string]string
+
 // Read next line from log file, and return parsed record. If all lines read
 // method return ni, io.EOF
-func (r *Reader) Read() (record map[string]string, err error) {
+func (r *Reader) Read() (record Entry, err error) {
 	if r.scanner.Scan() {
 		record, err = r.parseRecord(r.scanner.Text())
 	} else {
@@ -86,7 +88,7 @@ func (r *Reader) Read() (record map[string]string, err error) {
 	return
 }
 
-func (r *Reader) parseRecord(line string) (record map[string]string, err error) {
+func (r *Reader) parseRecord(line string) (record Entry, err error) {
 	// Parse line to fill map record. Return error if a line does not match given format
 	re := r.GetFormatRegexp()
 	fields := re.FindStringSubmatch(line)
@@ -96,7 +98,7 @@ func (r *Reader) parseRecord(line string) (record map[string]string, err error) 
 	}
 
 	// Iterate over subexp foung and fill the map record
-	record = make(map[string]string)
+	record = make(Entry)
 	for i, name := range re.SubexpNames() {
 		if i == 0 {
 			continue

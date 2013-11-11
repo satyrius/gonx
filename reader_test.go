@@ -20,7 +20,7 @@ func TestGetRecord(t *testing.T) {
 	format := "$remote_addr [$time_local] \"$request\""
 	file := strings.NewReader(`89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`)
 	reader := NewReader(file, format)
-	expected := map[string]string{
+	expected := Entry{
 		"remote_addr": "89.234.89.123",
 		"time_local":  "08/Nov/2013:13:39:18 +0000",
 		"request":     "GET /api/foo/bar HTTP/1.1",
