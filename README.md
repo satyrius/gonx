@@ -38,4 +38,14 @@ It should contain variables inn form `$name`. The regular expression will be cre
 	
 If log line does not match this format, the `Reader.Read` returns an `error`. Otherwise you will get the record of type `map[string][string]` with `remote_addr`, `time_local` and `request` keys filled with parsed values.
 
+## Stability
 
+This library API and internal representation can be changed at any moment, but I guarantee that backward capability will be supported for the following public interfaces.
+
+* `func NewReader(logFile io.Reader, format string) *Reader`
+* `func NewNginxReader(logFile io.Reader, nginxConf io.Reader, formatName string) (reader *Reader, err error)`
+* `func (r *Reader) Read() (record map[string]string, err error)`
+
+## Contributing
+
+Fork the repo, create a feature branch then send me pull request. Feel free to create new issues or contact me using email.
