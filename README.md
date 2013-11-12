@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/satyrius/gonx.png)](https://travis-ci.org/satyrius/gonx)
 
-`gonx` is Nginx access log reader libriry for `Go`. In fact you can use it for any format.
+`gonx` is Nginx access log reader library for `Go`. In fact you can use it for any format.
 
 ## Usage
 
