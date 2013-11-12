@@ -6,7 +6,6 @@ import (
 	"github.com/satyrius/gonx"
 	"io"
 	"os"
-	"strings"
 )
 
 var conf string
@@ -28,7 +27,10 @@ func main() {
 	defer nginxConfig.Close()
 
 	// Read from STDIN and use log_format to parse log records
-	reader := gonx.NewNginxReader(os.Stdin, nginxConfig, format)
+	reader, err := gonx.NewNginxReader(os.Stdin, nginxConfig, format)
+	if err != nil {
+		panic(err)
+	}
 	for {
 		rec, err := reader.Read()
 		if err == io.EOF {
