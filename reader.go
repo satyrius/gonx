@@ -74,6 +74,14 @@ func (r *Reader) GetFormatRegexp() *regexp.Regexp {
 
 type Entry map[string]string
 
+func (entry *Entry) Get(name string) (value string, err error) {
+	value, ok := (*entry)[name]
+	if !ok {
+		err = fmt.Errorf("Field '%v' does not found in record %+v", name, *entry)
+	}
+	return
+}
+
 // Read next line from log file, and return parsed record. If all lines read
 // method return ni, io.EOF
 func (r *Reader) Read() (record Entry, err error) {
