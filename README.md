@@ -52,6 +52,10 @@ This library API and internal representation can be changed at any moment, but I
 * `func NewNginxReader(logFile io.Reader, nginxConf io.Reader, formatName string) (reader *Reader, err error)`
 * `func (r *Reader) Read() (record Entry, err error)`
 
+## Changelog
+
+All major changes will be noticed in [release notes](https://github.com/satyrius/gonx/releases).
+
 ## Contributing
 
 Fork the repo, create a feature branch then send me pull request. Feel free to create new issues or contact me using email.
