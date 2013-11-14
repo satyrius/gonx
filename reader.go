@@ -4,20 +4,53 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	//"os"
 	"regexp"
+	"sync"
 )
 
 type Reader struct {
 	format  string
 	re      *regexp.Regexp
-	scanner *bufio.Scanner
+	files   chan io.Reader
+	entries chan Entry
+	wg      sync.WaitGroup
+}
+
+func NewMap(files chan io.Reader, format string) *Reader {
+	r := &Reader{
+		format:  format,
+		files:   files,
+		entries: make(chan Entry, 10),
+	}
+	// Get regexp to trigger its creation now to avoid data race
+	// in future (this is not the method I want to lock Mutex
+	// every time.
+	// TODO Unbind this method from Reader struct
+	r.GetFormatRegexp()
+
+	for file := range files {
+		r.wg.Add(1)
+		go r.readFile(file)
+	}
+
+	go func() {
+		r.wg.Wait()
+		close(r.entries)
+	}()
+
+	return r
+}
+
+func (r *Reader) handleError(err error) {
+	//fmt.Fprintln(os.Stderr, err)
 }
 
 func NewReader(logFile io.Reader, format string) *Reader {
-	return &Reader{
-		format:  format,
-		scanner: bufio.NewScanner(logFile),
-	}
+	files := make(chan io.Reader, 1)
+	files <- logFile
+	close(files)
+	return NewMap(files, format)
 }
 
 func NewNginxReader(logFile io.Reader, nginxConf io.Reader, formatName string) (reader *Reader, err error) {
@@ -72,26 +105,33 @@ func (r *Reader) GetFormatRegexp() *regexp.Regexp {
 	return r.re
 }
 
-type Entry map[string]string
-
-func (entry *Entry) Get(name string) (value string, err error) {
-	value, ok := (*entry)[name]
-	if !ok {
-		err = fmt.Errorf("Field '%v' does not found in record %+v", name, *entry)
+func (r *Reader) readFile(file io.Reader) {
+	// Iterate over log file lines and spawn new mapper goroutine
+	// to parse it into given format
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		r.wg.Add(1)
+		go func(line string) {
+			entry, err := r.parseRecord(line)
+			if err != nil {
+				r.handleError(err)
+			}
+			r.entries <- entry
+			r.wg.Done()
+		}(scanner.Text())
 	}
-	return
+	if err := scanner.Err(); err != nil {
+		r.handleError(err)
+	}
+	r.wg.Done()
 }
 
-// Read next line from log file, and return parsed record. If all lines read
-// method return ni, io.EOF
-func (r *Reader) Read() (record Entry, err error) {
-	if r.scanner.Scan() {
-		record, err = r.parseRecord(r.scanner.Text())
-	} else {
-		err = r.scanner.Err()
-		if err == nil {
-			err = io.EOF
-		}
+// Read next line from entries channel, and return parsed record. If channel is closed
+// then method returns io.EOF error
+func (r *Reader) Read() (entry Entry, err error) {
+	entry, ok := <-r.entries
+	if !ok {
+		err = io.EOF
 	}
 	return
 }
