@@ -1,6 +1,9 @@
 test: deps
 	go test -v .
 
+bench: deps
+	go test -bench .
+
 deps:
 	go get github.com/stretchr/testify
 
