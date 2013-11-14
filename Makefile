@@ -1,7 +1,7 @@
-test: deps
+test:
 	go test -v .
 
-bench: deps
+bench:
 	go test -bench .
 
 deps:
