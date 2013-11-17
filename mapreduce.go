@@ -6,72 +6,34 @@ import (
 	"sync"
 )
 
-func (m *Map) handleError(err error) {
+func handleError(err error) {
 	//fmt.Fprintln(os.Stderr, err)
 }
 
-// Log Entry map
-type Map struct {
-	parser  *Parser
-	entries chan Entry
-	wg      sync.WaitGroup
-}
-
-func oneFileChannel(file io.Reader) chan io.Reader {
-	ch := make(chan io.Reader, 1)
-	ch <- file
-	close(ch)
-	return ch
-}
-
-func NewMap(files chan io.Reader, parser *Parser) *Map {
-	m := &Map{
-		parser:  parser,
-		entries: make(chan Entry, 10),
-	}
-
-	for file := range files {
-		go m.mapFile(file)
-	}
-
-	go func() {
-		m.wg.Wait()
-		close(m.entries)
-	}()
-
-	return m
-}
-
-func (m *Map) mapFile(file io.Reader) {
-	// Whole file should be read
-	m.wg.Add(1)
-	defer m.wg.Done()
+// Iterate over given file and map each it's line into Entry record using parser.
+// Results will be written into output Entries channel.
+func EntryMap(file io.Reader, parser *Parser, output chan Entry) {
+	var wg sync.WaitGroup
 
 	// Iterate over log file lines and spawn new mapper goroutine
 	// to parse it into given format
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		m.wg.Add(1)
+		wg.Add(1)
 		go func(line string) {
-			defer m.wg.Done()
-			entry, err := m.parser.ParseString(line)
+			defer wg.Done()
+			entry, err := parser.ParseString(line)
 			if err == nil {
-				m.entries <- entry
+				output <- entry
 			} else {
-				m.handleError(err)
+				handleError(err)
 			}
 		}(scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
-		m.handleError(err)
+		handleError(err)
 	}
-}
-
-// Read next Entry from Entries channel. Return nil if channel is closed
-func (m *Map) GetEntry() *Entry {
-	entry, ok := <-m.entries
-	if !ok {
-		return nil
-	}
-	return &entry
+	// Wait until all files will be read and all lines will be
+	// parsed and wrote to the Entries channel
+	wg.Wait()
 }
