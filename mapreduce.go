@@ -31,8 +31,7 @@ func NewMap(files chan io.Reader, parser *Parser) *Map {
 	}
 
 	for file := range files {
-		m.wg.Add(1)
-		go m.readFile(file)
+		go m.mapFile(file)
 	}
 
 	go func() {
@@ -43,26 +42,29 @@ func NewMap(files chan io.Reader, parser *Parser) *Map {
 	return m
 }
 
-func (m *Map) readFile(file io.Reader) {
+func (m *Map) mapFile(file io.Reader) {
+	// Whole file should be read
+	m.wg.Add(1)
+	defer m.wg.Done()
+
 	// Iterate over log file lines and spawn new mapper goroutine
 	// to parse it into given format
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		m.wg.Add(1)
 		go func(line string) {
+			defer m.wg.Done()
 			entry, err := m.parser.ParseString(line)
 			if err == nil {
 				m.entries <- entry
 			} else {
 				m.handleError(err)
 			}
-			m.wg.Done()
 		}(scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
 		m.handleError(err)
 	}
-	m.wg.Done()
 }
 
 // Read next Entry from Entries channel. Return nil if channel is closed
