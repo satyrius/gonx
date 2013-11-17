@@ -3,30 +3,18 @@ package gonx
 import (
 	"bufio"
 	"io"
+	"sync"
 )
 
-func (r *Reader) handleError(err error) {
+func (m *Map) handleError(err error) {
 	//fmt.Fprintln(os.Stderr, err)
 }
 
-func newMap(files chan io.Reader, parser *Parser) *Reader {
-	reader := &Reader{
-		parser:  parser,
-		files:   files,
-		entries: make(chan Entry, 10),
-	}
-
-	for file := range files {
-		reader.wg.Add(1)
-		go reader.readFile(file)
-	}
-
-	go func() {
-		reader.wg.Wait()
-		close(reader.entries)
-	}()
-
-	return reader
+// Log Entry map
+type Map struct {
+	parser  *Parser
+	entries chan Entry
+	wg      sync.WaitGroup
 }
 
 func oneFileChannel(file io.Reader) chan io.Reader {
@@ -36,24 +24,52 @@ func oneFileChannel(file io.Reader) chan io.Reader {
 	return ch
 }
 
-func (r *Reader) readFile(file io.Reader) {
+func NewMap(files chan io.Reader, parser *Parser) *Map {
+	m := &Map{
+		parser:  parser,
+		entries: make(chan Entry, 10),
+	}
+
+	for file := range files {
+		m.wg.Add(1)
+		go m.readFile(file)
+	}
+
+	go func() {
+		m.wg.Wait()
+		close(m.entries)
+	}()
+
+	return m
+}
+
+func (m *Map) readFile(file io.Reader) {
 	// Iterate over log file lines and spawn new mapper goroutine
 	// to parse it into given format
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		r.wg.Add(1)
+		m.wg.Add(1)
 		go func(line string) {
-			entry, err := r.parser.ParseString(line)
+			entry, err := m.parser.ParseString(line)
 			if err == nil {
-				r.entries <- entry
+				m.entries <- entry
 			} else {
-				r.handleError(err)
+				m.handleError(err)
 			}
-			r.wg.Done()
+			m.wg.Done()
 		}(scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
-		r.handleError(err)
+		m.handleError(err)
 	}
-	r.wg.Done()
+	m.wg.Done()
+}
+
+// Read next Entry from Entries channel. Return nil if channel is closed
+func (m *Map) GetEntry() *Entry {
+	entry, ok := <-m.entries
+	if !ok {
+		return nil
+	}
+	return &entry
 }
