@@ -3,85 +3,41 @@ package gonx
 import (
 	"github.com/stretchr/testify/assert"
 	"io"
-	"reflect"
 	"strings"
 	"testing"
 )
 
-func TestGetFormatRegexp(t *testing.T) {
-	format := "$remote_addr [$time_local] \"$request\""
-	reader := NewReader(strings.NewReader(""), format)
-	expected := `^(?P<remote_addr>[^ ]+) \[(?P<time_local>[^]]+)\] "(?P<request>[^"]+)"$`
-	if re := reader.GetFormatRegexp(); re.String() != expected {
-		t.Errorf("Wrong RE '%v'", re)
-	}
-}
-
-func TestGetRecord(t *testing.T) {
+func TestRead(t *testing.T) {
 	format := "$remote_addr [$time_local] \"$request\""
 	file := strings.NewReader(`89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`)
 	reader := NewReader(file, format)
+	assert.Nil(t, reader.entries)
+
 	expected := Entry{
 		"remote_addr": "89.234.89.123",
 		"time_local":  "08/Nov/2013:13:39:18 +0000",
 		"request":     "GET /api/foo/bar HTTP/1.1",
 	}
-	rec, err := reader.Read()
-	if err != nil {
-		t.Error(err)
-	}
-	if !reflect.DeepEqual(rec, expected) {
-		t.Errorf("Get invalid record %v", rec)
-	}
-	if _, err := reader.Read(); err != io.EOF {
-		t.Error("End of file expected")
-	}
+
+	// Read entry from incoming channel
+	entry, err := reader.Read()
+	assert.NoError(t, err)
+	assert.Equal(t, entry, expected)
+
+	// It was only one line, nothing to read
+	_, err = reader.Read()
+	assert.Equal(t, err, io.EOF)
 }
 
 func TestInvalidLineFormat(t *testing.T) {
+	t.Skip("Read method does not return errors anymore, because of asynchronios algorithm")
 	format := "$remote_addr [$time_local] \"$request\""
 	file := strings.NewReader(`89.234.89.123 - - [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`)
 	reader := NewReader(file, format)
-	if rec, err := reader.Read(); err == nil {
-		t.Errorf("Invalid record error expected, but get the record %+v", rec)
-	}
-}
 
-func TestReadLogFormatFromFile(t *testing.T) {
-	expected := "$remote_addr - $remote_user [$time_local] \"$request\" $status \"$http_referer\" \"$http_user_agent\""
-	conf := strings.NewReader(`
-        http {
-            include      conf/mime.types;
-            log_format   minimal  '$remote_addr [$time_local] "$request"';
-            log_format   main     '$remote_addr - $remote_user [$time_local] '
-                                  '"$request" $status '
-                                  '"$http_referer" "$http_user_agent"';
-            log_format   download '$remote_addr - $remote_user [$time_local] '
-                                  '"$request" $status $bytes_sent '
-                                  '"$http_referer" "$http_user_agent" '
-                                  '"$http_range" "$sent_http_content_range"';
-        }
-    `)
-	file := strings.NewReader("")
-	reader, err := NewNginxReader(file, conf, "main")
-	if err != nil {
-		t.Error(err)
-	}
-	if format := reader.GetFormat(); format != expected {
-		t.Errorf("Wrong format was read from conf file \n%v\nExpected\n%v", format, expected)
-	}
-}
+	// Invalid entries do not go to the entries channel, so nothing to read
+	_, err := reader.Read()
+	assert.Equal(t, err, io.EOF)
 
-func TestEntry(t *testing.T) {
-	entry := Entry{"foo": "1"}
-
-	// Get existings field
-	val, err := entry.Get("foo")
-	assert.NoError(t, err)
-	assert.Equal(t, val, "1")
-
-	// Get field that does not exist
-	val, err = entry.Get("bar")
-	assert.Error(t, err)
-	assert.Equal(t, val, "")
+	// TODO test Reader internal error handling
 }

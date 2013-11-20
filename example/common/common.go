@@ -1,9 +1,9 @@
 package main
 
 import (
+	gonx "../.."
 	"flag"
 	"fmt"
-	"github.com/satyrius/gonx"
 	"io"
 	"os"
 	"strings"

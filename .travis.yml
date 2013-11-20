@@ -2,8 +2,5 @@ language: go
 go:
   - 1.1
   - tip
-before_install:
-  - go get github.com/mattn/gom
-script:
-  - $HOME/gopath/bin/gom install
-  - $HOME/gopath/bin/gom test
+install: make deps
+script: go test -v -bench .
