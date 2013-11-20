@@ -5,20 +5,16 @@ import (
 )
 
 type Reader struct {
-	entries chan Entry
 	file    io.Reader
 	parser  *Parser
-}
-
-func NewEntryReader(logFile io.Reader, parser *Parser) *Reader {
-	return &Reader{
-		file:   logFile,
-		parser: parser,
-	}
+	entries chan Entry
 }
 
 func NewReader(logFile io.Reader, format string) *Reader {
-	return NewEntryReader(logFile, NewParser(format))
+	return &Reader{
+		file:   logFile,
+		parser: NewParser(format),
+	}
 }
 
 func NewNginxReader(logFile io.Reader, nginxConf io.Reader, formatName string) (reader *Reader, err error) {
@@ -26,7 +22,10 @@ func NewNginxReader(logFile io.Reader, nginxConf io.Reader, formatName string) (
 	if err != nil {
 		return nil, err
 	}
-	reader = NewEntryReader(logFile, parser)
+	reader = &Reader{
+		file:   logFile,
+		parser: parser,
+	}
 	return
 }
 
