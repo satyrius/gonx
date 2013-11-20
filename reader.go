@@ -36,11 +36,7 @@ func NewNginxReader(logFile io.Reader, nginxConf io.Reader, formatName string) (
 // Get next parsed Entry from the log file. Return EOF if there is no Entries to read.
 func (r *Reader) Read() (entry Entry, err error) {
 	if r.entries == nil {
-		r.entries = make(chan Entry, 10)
-		go func() {
-			EntryMap(r.file, r.parser, r.entries)
-			close(r.entries)
-		}()
+		r.entries = MapReduce(r.file, r.parser, new(ReadAll)).(chan Entry)
 	}
 	// TODO return Entry reference instead of instance
 	entry, ok := <-r.entries

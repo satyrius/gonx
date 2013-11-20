@@ -10,15 +10,18 @@ func handleError(err error) {
 	//fmt.Fprintln(os.Stderr, err)
 }
 
-// Iterate over given file and map each it's line into Entry record using parser.
-// Results will be written into output Entries channel.
-func EntryMap(file io.Reader, parser *Parser, output chan Entry) {
+// Iterate over given file and map each it's line into Entry record using
+// parser and apply reducer to the Entries channel. Execution terminates
+// when result will be readed from reducer's output channel, but the mapper
+// works and fills input Entries channel until all lines will be read from
+// the fiven file.
+func MapReduce(file io.Reader, parser *Parser, reducer Reducer) interface{} {
 	// Input file lines. This channel is unbuffered to publish
 	// next line to handle only when previous is taken by mapper.
 	var lines = make(chan string)
 
 	// Host thread to spawn new mappers
-	var quit = make(chan int)
+	var entries = make(chan Entry, 10)
 	go func(topLoad int) {
 		// Create semafore channel with capacity equal to the output channel
 		// capacity. Use it to control mapper goroutines spawn.
@@ -51,7 +54,7 @@ func EntryMap(file io.Reader, parser *Parser, output chan Entry) {
 					// Write result Entry to the output channel. This will
 					// block goroutine runtime until channel is free to
 					// accept new item.
-					output <- entry
+					entries <- entry
 				} else {
 					handleError(err)
 				}
@@ -61,19 +64,25 @@ func EntryMap(file io.Reader, parser *Parser, output chan Entry) {
 		}
 		// Wait for all mappers to complete, then send a quit signal
 		wg.Wait()
-		quit <- 1
-	}(cap(output))
+		close(entries)
+	}(cap(entries))
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		// Read next line from the file and feed mapper routines.
-		lines <- scanner.Text()
-	}
-	close(lines)
+	// Run reducer routine.
+	var output = make(chan interface{})
+	go reducer.Reduce(entries, output)
 
-	if err := scanner.Err(); err != nil {
-		handleError(err)
-	}
+	go func() {
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			// Read next line from the file and feed mapper routines.
+			lines <- scanner.Text()
+		}
+		close(lines)
 
-	<-quit
+		if err := scanner.Err(); err != nil {
+			handleError(err)
+		}
+	}()
+
+	return <-output
 }
