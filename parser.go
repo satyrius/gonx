@@ -7,12 +7,13 @@ import (
 	"regexp"
 )
 
+// Log record parser. Use specific constructors to initialize it.
 type Parser struct {
 	format string
 	regexp *regexp.Regexp
 }
 
-// Returns a new Parser, use givel log format to create its internal
+// Returns a new Parser, use given log format to create its internal
 // strings parsing regexp.
 func NewParser(format string) *Parser {
 	re := regexp.MustCompile(`\\\$([a-z_]+)(\\?(.))`).ReplaceAllString(
@@ -41,8 +42,8 @@ func (parser *Parser) ParseString(line string) (entry Entry, err error) {
 	return
 }
 
-// NewNginxParser parse nginx conf file to find log_format with diven name and
-// returns parser for this format. If returns an error if cannot find the needle.
+// NewNginxParser parse nginx conf file to find log_format with given name and
+// returns parser for this format. It returns an error if cannot find the needle.
 func NewNginxParser(conf io.Reader, name string) (parser *Parser, err error) {
 	scanner := bufio.NewScanner(conf)
 	re := regexp.MustCompile(fmt.Sprintf(`^.*log_format\s+%v\s+(.+)\s*$`, name))
