@@ -35,6 +35,19 @@ for {
 
 See more examples in `example/*.go` sources.
 
+## Performance
+
+I have a few benchmarks for parsing `string` log record into `Entry` using `gonx.Parser`
+
+	BenchmarkParseSimpleLogRecord      100000            19457 ns/op
+	BenchmarkParseLogRecord             20000            84425 ns/op
+	
+And here is some real wold stats. I got ~300Mb log file with ~700K records and process with [simple scripts](https://github.com/satyrius/gonx/tree/master/benchmarks).
+
+* Reading whole file line by line with `bufio.Scanner` without any other processing takes a *one second*.
+* Read in the same manner plus parsing with `gonx.Parser` takes *about 80 seconds*
+* But for reading this file with `gonx.Reader` which parses records using separate goroutines it takes *about 45 seconds* (but I want to make it faster)
+
 ## Format
 
 As I said above this library is primary for nginx access log parsing, but it can be configured to parse any 
