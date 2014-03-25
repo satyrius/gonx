@@ -12,6 +12,7 @@ func TestReadAllReducer(t *testing.T) {
 	// Prepare import channel
 	input := make(chan Entry, 1)
 	input <- Entry{}
+	close(input)
 
 	output := make(chan interface{}, 1) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
