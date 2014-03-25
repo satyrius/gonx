@@ -25,6 +25,23 @@ func (r *ReadAll) Reduce(input chan Entry, output chan interface{}) {
 	output <- input
 }
 
+// Implements Reducer interface to count entries
+type Count struct {
+}
+
+// Simply count entrries and write a sum to the output channel
+func (r *Count) Reduce(input chan Entry, output chan interface{}) {
+	count := 0
+	for {
+		_, ok := <-input
+		if !ok {
+			break
+		}
+		count++
+	}
+	output <- count
+}
+
 // Implements Reducer interface for summarize Entry values for the given fields
 type Sum struct {
 	Fields []string

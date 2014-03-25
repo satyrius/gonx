@@ -23,6 +23,27 @@ func TestReadAllReducer(t *testing.T) {
 	assert.True(t, ok)
 }
 
+func TestCountReducer(t *testing.T) {
+	reducer := new(Count)
+	assert.Implements(t, (*Reducer)(nil), reducer)
+
+	// Prepare import channel
+	input := make(chan Entry, 2)
+	input <- Entry{}
+	input <- Entry{}
+	close(input)
+
+	output := make(chan interface{}, 1) // Make it buffered to avoid deadlock
+	reducer.Reduce(input, output)
+
+	// ReadAll reducer writes input channel to the output
+	result, opened := <-output
+	assert.True(t, opened)
+	count, ok := result.(int)
+	assert.True(t, ok)
+	assert.Equal(t, count, 2)
+}
+
 func TestSumReducer(t *testing.T) {
 	reducer := &Sum{[]string{"foo", "bar"}}
 	assert.Implements(t, (*Reducer)(nil), reducer)
