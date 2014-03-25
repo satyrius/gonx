@@ -37,7 +37,7 @@ func TestCountReducer(t *testing.T) {
 	output := make(chan interface{}, 1) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
 
-	// ReadAll reducer writes input channel to the output
+	// Reducer counts entries and returns single integer value to the channel.
 	result, opened := <-output
 	assert.True(t, opened)
 	count, ok := result.(int)
