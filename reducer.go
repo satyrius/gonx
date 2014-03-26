@@ -1,7 +1,5 @@
 package gonx
 
-import "strconv"
-
 // Reducer interface for Entries channel redure.
 //
 // Each Reduce method should accept input channel of Entries, do it's job and
@@ -50,12 +48,9 @@ type Sum struct {
 // Summarize given Entry fields and return a map with result for each field.
 func (r *Sum) Reduce(input chan Entry, output chan interface{}) {
 	sum := make(map[string]float64)
-	for _, name := range r.Fields {
-		sum[name] = 0
-	}
 	for entry := range input {
 		for _, name := range r.Fields {
-			val, err := strconv.ParseFloat(entry[name], 64)
+			val, err := entry.GetFloat(name)
 			if err == nil {
 				sum[name] += val
 			}
