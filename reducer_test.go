@@ -67,7 +67,7 @@ func TestSumReducer(t *testing.T) {
 	output := make(chan interface{}, 1) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
 
-	// ReadAll reducer writes a map with sums into output
+	// Reducer should return one map with fields we specify to sum
 	result, opened := <-output
 	assert.True(t, opened)
 	sum, ok := result.(map[string]float64)
@@ -75,10 +75,10 @@ func TestSumReducer(t *testing.T) {
 	// The result should contain sums for "foo" and "bar" fields
 	value, ok := sum["foo"]
 	assert.True(t, ok)
-	assert.Equal(t, value, 579.0)
+	assert.Equal(t, value, 123.0+456)
 	value, ok = sum["bar"]
 	assert.True(t, ok)
-	assert.Equal(t, value, 801.0)
+	assert.Equal(t, value, 234.0+567.0)
 	_, ok = sum["baz"]
 	assert.False(t, ok)
 }
