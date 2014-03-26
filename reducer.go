@@ -58,3 +58,25 @@ func (r *Sum) Reduce(input chan Entry, output chan interface{}) {
 	}
 	output <- sum
 }
+
+// Implements Reducer interface for average entries values calculation
+type Avg struct {
+	Fields []string
+}
+
+// Calculate average value for input channel Entries, using configured Fields
+// of the struct. Write result to the output channel as map[string]float64
+func (r *Avg) Reduce(input chan Entry, output chan interface{}) {
+	avg := make(map[string]float64)
+	count := 0.0
+	for entry := range input {
+		for _, name := range r.Fields {
+			val, err := entry.GetFloat(name)
+			if err == nil {
+				avg[name] = (avg[name]*count + val) / (count + 1)
+			}
+		}
+		count++
+	}
+	output <- avg
+}
