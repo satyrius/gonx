@@ -50,7 +50,7 @@ func (r *Sum) Reduce(input chan *Entry, output chan interface{}) {
 	sum := make(map[string]float64)
 	for entry := range input {
 		for _, name := range r.Fields {
-			val, err := entry.GetFloat(name)
+			val, err := entry.FloatField(name)
 			if err == nil {
 				sum[name] += val
 			}
@@ -71,7 +71,7 @@ func (r *Avg) Reduce(input chan *Entry, output chan interface{}) {
 	count := 0.0
 	for entry := range input {
 		for _, name := range r.Fields {
-			val, err := entry.GetFloat(name)
+			val, err := entry.FloatField(name)
 			if err == nil {
 				avg[name] = (avg[name]*count + val) / (count + 1)
 			}

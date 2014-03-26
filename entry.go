@@ -30,7 +30,7 @@ func (entry *Entry) SetField(name string, value string) {
 
 // Return entry field value by name or empty string and error if it
 // does not exist.
-func (entry *Entry) Get(name string) (value string, err error) {
+func (entry *Entry) Field(name string) (value string, err error) {
 	value, ok := entry.fields[name]
 	if !ok {
 		err = fmt.Errorf("Field '%v' does not found in record %+v", name, *entry)
@@ -40,8 +40,8 @@ func (entry *Entry) Get(name string) (value string, err error) {
 
 // Return entry field value as float64. Rutuen nil if field does not exists
 // and convertion error if cannot cast a type.
-func (entry *Entry) GetFloat(name string) (value float64, err error) {
-	tmp, err := entry.Get(name)
+func (entry *Entry) FloatField(name string) (value float64, err error) {
+	tmp, err := entry.Field(name)
 	if err == nil {
 		value, err = strconv.ParseFloat(tmp, 64)
 	}
