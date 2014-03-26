@@ -15,13 +15,13 @@ type Entry struct {
 }
 
 // Creates an empty Entry to be filled later
-func NewEmptyEntry() Entry {
-	return Entry{make(Fields)}
+func NewEmptyEntry() *Entry {
+	return &Entry{make(Fields)}
 }
 
 // Creates an Entry with fiven fields
-func NewEntry(fields Fields) Entry {
-	return Entry{fields}
+func NewEntry(fields Fields) *Entry {
+	return &Entry{fields}
 }
 
 func (entry *Entry) SetField(name string, value string) {

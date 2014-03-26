@@ -10,7 +10,7 @@ func TestReadAllReducer(t *testing.T) {
 	assert.Implements(t, (*Reducer)(nil), reducer)
 
 	// Prepare import channel
-	input := make(chan Entry, 1)
+	input := make(chan *Entry, 1)
 	input <- NewEmptyEntry()
 	close(input)
 
@@ -20,7 +20,7 @@ func TestReadAllReducer(t *testing.T) {
 	// ReadAll reducer writes input channel to the output
 	result, opened := <-output
 	assert.True(t, opened)
-	_, ok := result.(chan Entry)
+	_, ok := result.(chan *Entry)
 	assert.True(t, ok)
 }
 
@@ -29,7 +29,7 @@ func TestCountReducer(t *testing.T) {
 	assert.Implements(t, (*Reducer)(nil), reducer)
 
 	// Prepare import channel
-	input := make(chan Entry, 2)
+	input := make(chan *Entry, 2)
 	input <- NewEmptyEntry()
 	input <- NewEmptyEntry()
 	close(input)
@@ -50,7 +50,7 @@ func TestSumReducer(t *testing.T) {
 	assert.Implements(t, (*Reducer)(nil), reducer)
 
 	// Prepare import channel
-	input := make(chan Entry, 2)
+	input := make(chan *Entry, 2)
 	input <- NewEntry(Fields{
 		"uri": "/asd/fgh",
 		"foo": "123",
@@ -88,7 +88,7 @@ func TestAvgReducer(t *testing.T) {
 	assert.Implements(t, (*Reducer)(nil), reducer)
 
 	// Prepare import channel
-	input := make(chan Entry, 2)
+	input := make(chan *Entry, 2)
 	input <- NewEntry(Fields{
 		"uri": "/asd/fgh",
 		"foo": "123",

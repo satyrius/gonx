@@ -8,7 +8,7 @@ package gonx
 // It does not return values because usually it runs in a separate
 // goroutine and it is handy to use channel for reduced data retrieval.
 type Reducer interface {
-	Reduce(input chan Entry, output chan interface{})
+	Reduce(input chan *Entry, output chan interface{})
 }
 
 // Implements Reducer interface for simple input entries redirection to
@@ -19,7 +19,7 @@ type ReadAll struct {
 // Redirect input Entries channel directly to the output without any
 // modifications. It is useful when you want jast to read file fast
 // using asynchronous with mapper routines.
-func (r *ReadAll) Reduce(input chan Entry, output chan interface{}) {
+func (r *ReadAll) Reduce(input chan *Entry, output chan interface{}) {
 	output <- input
 }
 
@@ -28,7 +28,7 @@ type Count struct {
 }
 
 // Simply count entrries and write a sum to the output channel
-func (r *Count) Reduce(input chan Entry, output chan interface{}) {
+func (r *Count) Reduce(input chan *Entry, output chan interface{}) {
 	count := 0
 	for {
 		_, ok := <-input
@@ -46,7 +46,7 @@ type Sum struct {
 }
 
 // Summarize given Entry fields and return a map with result for each field.
-func (r *Sum) Reduce(input chan Entry, output chan interface{}) {
+func (r *Sum) Reduce(input chan *Entry, output chan interface{}) {
 	sum := make(map[string]float64)
 	for entry := range input {
 		for _, name := range r.Fields {
@@ -66,7 +66,7 @@ type Avg struct {
 
 // Calculate average value for input channel Entries, using configured Fields
 // of the struct. Write result to the output channel as map[string]float64
-func (r *Avg) Reduce(input chan Entry, output chan interface{}) {
+func (r *Avg) Reduce(input chan *Entry, output chan interface{}) {
 	avg := make(map[string]float64)
 	count := 0.0
 	for entry := range input {

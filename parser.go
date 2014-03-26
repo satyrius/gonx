@@ -23,7 +23,7 @@ func NewParser(format string) *Parser {
 
 // Parse log file line using internal format regexp. If line do not match
 // given format an error will be returned.
-func (parser *Parser) ParseString(line string) (entry Entry, err error) {
+func (parser *Parser) ParseString(line string) (entry *Entry, err error) {
 	re := parser.regexp
 	fields := re.FindStringSubmatch(line)
 	if fields == nil {
