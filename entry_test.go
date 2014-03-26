@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func TestEntry(t *testing.T) {
-	entry := Entry{"foo": "1"}
+func TestGetEntry(t *testing.T) {
+	entry := NewEntry(Fields{"foo": "1"})
 
 	// Get existings field
 	val, err := entry.Get("foo")
@@ -20,7 +20,7 @@ func TestEntry(t *testing.T) {
 }
 
 func TestEntryGetFloat(t *testing.T) {
-	entry := Entry{"foo": "1", "bar": "not a number"}
+	entry := NewEntry(Fields{"foo": "1", "bar": "not a number"})
 
 	// Get existings field
 	val, err := entry.GetFloat("foo")
@@ -36,4 +36,19 @@ func TestEntryGetFloat(t *testing.T) {
 	val, err = entry.GetFloat("baz")
 	assert.Error(t, err)
 	assert.Equal(t, val, 0.0)
+}
+
+func TestSetEntryField(t *testing.T) {
+	entry := NewEmptyEntry()
+	assert.Equal(t, len(entry.fields), 0)
+
+	entry.SetField("foo", "123")
+	value, err := entry.Get("foo")
+	assert.NoError(t, err)
+	assert.Equal(t, value, "123")
+
+	entry.SetField("foo", "234")
+	value, err = entry.Get("foo")
+	assert.NoError(t, err)
+	assert.Equal(t, value, "234")
 }

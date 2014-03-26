@@ -11,7 +11,7 @@ func TestReadAllReducer(t *testing.T) {
 
 	// Prepare import channel
 	input := make(chan Entry, 1)
-	input <- Entry{}
+	input <- NewEmptyEntry()
 	close(input)
 
 	output := make(chan interface{}, 1) // Make it buffered to avoid deadlock
@@ -30,8 +30,8 @@ func TestCountReducer(t *testing.T) {
 
 	// Prepare import channel
 	input := make(chan Entry, 2)
-	input <- Entry{}
-	input <- Entry{}
+	input <- NewEmptyEntry()
+	input <- NewEmptyEntry()
 	close(input)
 
 	output := make(chan interface{}, 1) // Make it buffered to avoid deadlock
@@ -51,18 +51,18 @@ func TestSumReducer(t *testing.T) {
 
 	// Prepare import channel
 	input := make(chan Entry, 2)
-	input <- Entry{
+	input <- NewEntry(Fields{
 		"uri": "/asd/fgh",
 		"foo": "123",
 		"bar": "234",
 		"baz": "345",
-	}
-	input <- Entry{
+	})
+	input <- NewEntry(Fields{
 		"uri": "/zxc/vbn",
 		"foo": "456",
 		"bar": "567",
 		"baz": "678",
-	}
+	})
 	close(input)
 	output := make(chan interface{}, 1) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
@@ -89,18 +89,18 @@ func TestAvgReducer(t *testing.T) {
 
 	// Prepare import channel
 	input := make(chan Entry, 2)
-	input <- Entry{
+	input <- NewEntry(Fields{
 		"uri": "/asd/fgh",
 		"foo": "123",
 		"bar": "234",
 		"baz": "345",
-	}
-	input <- Entry{
+	})
+	input <- NewEntry(Fields{
 		"uri": "/zxc/vbn",
 		"foo": "456",
 		"bar": "567",
 		"baz": "678",
-	}
+	})
 	close(input)
 	output := make(chan interface{}, 1) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)

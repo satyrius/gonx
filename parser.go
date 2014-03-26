@@ -32,12 +32,12 @@ func (parser *Parser) ParseString(line string) (entry Entry, err error) {
 	}
 
 	// Iterate over subexp foung and fill the map record
-	entry = make(Entry)
+	entry = NewEmptyEntry()
 	for i, name := range re.SubexpNames() {
 		if i == 0 {
 			continue
 		}
-		entry[name] = fields[i]
+		entry.SetField(name, fields[i])
 	}
 	return
 }
