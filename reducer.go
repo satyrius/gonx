@@ -1,5 +1,7 @@
 package gonx
 
+import "strconv"
+
 // Reducer interface for Entries channel redure.
 //
 // Each Reduce method should accept input channel of Entries, do it's job and
@@ -8,7 +10,7 @@ package gonx
 // It does not return values because usually it runs in a separate
 // goroutine and it is handy to use channel for reduced data retrieval.
 type Reducer interface {
-	Reduce(input chan *Entry, output chan interface{})
+	Reduce(input chan *Entry, output chan *Entry)
 }
 
 // Implements Reducer interface for simple input entries redirection to
@@ -19,8 +21,11 @@ type ReadAll struct {
 // Redirect input Entries channel directly to the output without any
 // modifications. It is useful when you want jast to read file fast
 // using asynchronous with mapper routines.
-func (r *ReadAll) Reduce(input chan *Entry, output chan interface{}) {
-	output <- input
+func (r *ReadAll) Reduce(input chan *Entry, output chan *Entry) {
+	for entry := range input {
+		output <- entry
+	}
+	close(output)
 }
 
 // Implements Reducer interface to count entries
@@ -28,7 +33,7 @@ type Count struct {
 }
 
 // Simply count entrries and write a sum to the output channel
-func (r *Count) Reduce(input chan *Entry, output chan interface{}) {
+func (r *Count) Reduce(input chan *Entry, output chan *Entry) {
 	count := 0
 	for {
 		_, ok := <-input
@@ -37,7 +42,8 @@ func (r *Count) Reduce(input chan *Entry, output chan interface{}) {
 		}
 		count++
 	}
-	output <- count
+	output <- NewEntry(Fields{"count": strconv.FormatUint(uint64(count), 10)})
+	close(output)
 }
 
 // Implements Reducer interface for summarize Entry values for the given fields
@@ -46,7 +52,7 @@ type Sum struct {
 }
 
 // Summarize given Entry fields and return a map with result for each field.
-func (r *Sum) Reduce(input chan *Entry, output chan interface{}) {
+func (r *Sum) Reduce(input chan *Entry, output chan *Entry) {
 	sum := make(map[string]float64)
 	for entry := range input {
 		for _, name := range r.Fields {
@@ -56,7 +62,12 @@ func (r *Sum) Reduce(input chan *Entry, output chan interface{}) {
 			}
 		}
 	}
-	output <- sum
+	entry := NewEmptyEntry()
+	for name, val := range sum {
+		entry.SetField(name, strconv.FormatFloat(val, 'f', 2, 64))
+	}
+	output <- entry
+	close(output)
 }
 
 // Implements Reducer interface for average entries values calculation
@@ -66,7 +77,7 @@ type Avg struct {
 
 // Calculate average value for input channel Entries, using configured Fields
 // of the struct. Write result to the output channel as map[string]float64
-func (r *Avg) Reduce(input chan *Entry, output chan interface{}) {
+func (r *Avg) Reduce(input chan *Entry, output chan *Entry) {
 	avg := make(map[string]float64)
 	count := 0.0
 	for entry := range input {
@@ -78,5 +89,10 @@ func (r *Avg) Reduce(input chan *Entry, output chan interface{}) {
 		}
 		count++
 	}
-	output <- avg
+	entry := NewEmptyEntry()
+	for name, val := range avg {
+		entry.SetField(name, strconv.FormatFloat(val, 'f', 2, 64))
+	}
+	output <- entry
+	close(output)
 }

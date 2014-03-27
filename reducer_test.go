@@ -11,17 +11,17 @@ func TestReadAllReducer(t *testing.T) {
 
 	// Prepare import channel
 	input := make(chan *Entry, 1)
-	input <- NewEmptyEntry()
+	entry := NewEmptyEntry()
+	input <- entry
 	close(input)
 
-	output := make(chan interface{}, 1) // Make it buffered to avoid deadlock
+	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
 
 	// ReadAll reducer writes input channel to the output
 	result, opened := <-output
 	assert.True(t, opened)
-	_, ok := result.(chan *Entry)
-	assert.True(t, ok)
+	assert.Equal(t, result, entry)
 }
 
 func TestCountReducer(t *testing.T) {
@@ -34,15 +34,14 @@ func TestCountReducer(t *testing.T) {
 	input <- NewEmptyEntry()
 	close(input)
 
-	output := make(chan interface{}, 1) // Make it buffered to avoid deadlock
+	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
 
-	// Reducer counts entries and returns single integer value to the channel.
 	result, opened := <-output
 	assert.True(t, opened)
-	count, ok := result.(int)
-	assert.True(t, ok)
-	assert.Equal(t, count, 2)
+	count, err := result.Field("count")
+	assert.NoError(t, err)
+	assert.Equal(t, count, "2")
 }
 
 func TestSumReducer(t *testing.T) {
@@ -64,23 +63,19 @@ func TestSumReducer(t *testing.T) {
 		"baz": "678",
 	})
 	close(input)
-	output := make(chan interface{}, 1) // Make it buffered to avoid deadlock
+	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
 
-	// Reducer should return one map with fields we specify to sum
 	result, opened := <-output
 	assert.True(t, opened)
-	sum, ok := result.(map[string]float64)
-	assert.True(t, ok)
-	// The result should contain sums for "foo" and "bar" fields
-	value, ok := sum["foo"]
-	assert.True(t, ok)
+	value, err := result.FloatField("foo")
+	assert.NoError(t, err)
 	assert.Equal(t, value, 123.0+456)
-	value, ok = sum["bar"]
-	assert.True(t, ok)
+	value, err = result.FloatField("bar")
+	assert.NoError(t, err)
 	assert.Equal(t, value, 234.0+567.0)
-	_, ok = sum["baz"]
-	assert.False(t, ok)
+	_, err = result.Field("buz")
+	assert.Error(t, err)
 }
 
 func TestAvgReducer(t *testing.T) {
@@ -102,21 +97,17 @@ func TestAvgReducer(t *testing.T) {
 		"baz": "678",
 	})
 	close(input)
-	output := make(chan interface{}, 1) // Make it buffered to avoid deadlock
+	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
 
-	// Reducer should return one map with fields we specify to calculate averate value
 	result, opened := <-output
 	assert.True(t, opened)
-	avg, ok := result.(map[string]float64)
-	assert.True(t, ok)
-	// The result should contain averages for "foo" and "bar" fields
-	value, ok := avg["foo"]
-	assert.True(t, ok)
-	assert.Equal(t, value, (123.0+456.0)/2.0)
-	value, ok = avg["bar"]
-	assert.True(t, ok)
+	value, err := result.FloatField("foo")
+	assert.NoError(t, err)
+	assert.Equal(t, value, (123.0+456)/2.0)
+	value, err = result.FloatField("bar")
+	assert.NoError(t, err)
 	assert.Equal(t, value, (234.0+567.0)/2.0)
-	_, ok = avg["baz"]
-	assert.False(t, ok)
+	_, err = result.Field("buz")
+	assert.Error(t, err)
 }
