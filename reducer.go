@@ -1,7 +1,5 @@
 package gonx
 
-import "strconv"
-
 // Reducer interface for Entries channel redure.
 //
 // Each Reduce method should accept input channel of Entries, do it's job and
@@ -34,7 +32,7 @@ type Count struct {
 
 // Simply count entrries and write a sum to the output channel
 func (r *Count) Reduce(input chan *Entry, output chan *Entry) {
-	count := 0
+	var count uint64 = 0
 	for {
 		_, ok := <-input
 		if !ok {
@@ -42,7 +40,9 @@ func (r *Count) Reduce(input chan *Entry, output chan *Entry) {
 		}
 		count++
 	}
-	output <- NewEntry(Fields{"count": strconv.FormatUint(uint64(count), 10)})
+	entry := NewEmptyEntry()
+	entry.SetUintField("count", count)
+	output <- entry
 	close(output)
 }
 
@@ -64,7 +64,7 @@ func (r *Sum) Reduce(input chan *Entry, output chan *Entry) {
 	}
 	entry := NewEmptyEntry()
 	for name, val := range sum {
-		entry.SetField(name, strconv.FormatFloat(val, 'f', 2, 64))
+		entry.SetFloatField(name, val)
 	}
 	output <- entry
 	close(output)
@@ -91,7 +91,7 @@ func (r *Avg) Reduce(input chan *Entry, output chan *Entry) {
 	}
 	entry := NewEmptyEntry()
 	for name, val := range avg {
-		entry.SetField(name, strconv.FormatFloat(val, 'f', 2, 64))
+		entry.SetFloatField(name, val)
 	}
 	output <- entry
 	close(output)

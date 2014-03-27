@@ -52,3 +52,19 @@ func TestSetEntryField(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, value, "234")
 }
+
+func TestSetEntryFloatField(t *testing.T) {
+	entry := NewEmptyEntry()
+	entry.SetFloatField("foo", 123.4567)
+	value, err := entry.Field("foo")
+	assert.NoError(t, err)
+	assert.Equal(t, value, "123.46")
+}
+
+func TestSetEntryUintField(t *testing.T) {
+	entry := NewEmptyEntry()
+	entry.SetUintField("foo", 123)
+	value, err := entry.Field("foo")
+	assert.NoError(t, err)
+	assert.Equal(t, value, "123")
+}

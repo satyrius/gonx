@@ -24,10 +24,6 @@ func NewEntry(fields Fields) *Entry {
 	return &Entry{fields}
 }
 
-func (entry *Entry) SetField(name string, value string) {
-	entry.fields[name] = value
-}
-
 // Return entry field value by name or empty string and error if it
 // does not exist.
 func (entry *Entry) Field(name string) (value string, err error) {
@@ -46,4 +42,22 @@ func (entry *Entry) FloatField(name string) (value float64, err error) {
 		value, err = strconv.ParseFloat(tmp, 64)
 	}
 	return
+}
+
+// Field value setter
+func (entry *Entry) SetField(name string, value string) {
+	entry.fields[name] = value
+}
+
+// Float field value setter. It accepts float64, but still store it as a
+// string in the same fields map. The precision is 2, its enough for log
+// parsing task
+func (entry *Entry) SetFloatField(name string, value float64) {
+	entry.SetField(name, strconv.FormatFloat(value, 'f', 2, 64))
+}
+
+// Integer field value setter. It accepts float64, but still store it as a
+// string in the same fields map.
+func (entry *Entry) SetUintField(name string, value uint64) {
+	entry.SetField(name, strconv.FormatUint(uint64(value), 10))
 }
