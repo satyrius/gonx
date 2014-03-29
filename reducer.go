@@ -1,5 +1,10 @@
 package gonx
 
+import (
+	"fmt"
+	"strings"
+)
+
 // Reducer interface for Entries channel redure.
 //
 // Each Reduce method should accept input channel of Entries, do it's job and
@@ -95,4 +100,48 @@ func (r *Avg) Reduce(input chan *Entry, output chan *Entry) {
 	}
 	output <- entry
 	close(output)
+}
+
+// Implements Reducer interface to apply other reducers and get data grouped by
+// given fields.
+type GroupBy struct {
+	Fields   []string
+	reducers []Reducer
+}
+
+func NewGroupBy(fields []string, reducers ...Reducer) *GroupBy {
+	return &GroupBy{
+		Fields:   fields,
+		reducers: reducers,
+	}
+}
+
+func (r *GroupBy) GetEntryKey(entry *Entry) string {
+	var key []string
+	for _, name := range r.Fields {
+		value, err := entry.Field(name)
+		if err != nil {
+			value = "NULL"
+		}
+		key = append(key, fmt.Sprintf("'%v'=%v", name, value))
+	}
+	return strings.Join(key, ";")
+}
+
+// Apply related reducers and group data by Fields.
+func (r *GroupBy) Reduce(input chan *Entry, output chan *Entry) {
+	subscribe := make([]chan *Entry, len(r.reducers))
+	result := make([]chan *Entry, len(r.reducers))
+	for i, reducer := range r.reducers {
+		subscribe[i] = make(chan *Entry, 10)
+		result[i] = make(chan *Entry, 10)
+		go reducer.Reduce(subscribe[i], result[i])
+	}
+	// Read reducer master input channel
+	for entry := range input {
+		// Publish input entry for each sub-reducers to process
+		for _, sub := range subscribe {
+			sub <- entry
+		}
+	}
 }
