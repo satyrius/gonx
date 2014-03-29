@@ -61,3 +61,10 @@ func (entry *Entry) SetFloatField(name string, value float64) {
 func (entry *Entry) SetUintField(name string, value uint64) {
 	entry.SetField(name, strconv.FormatUint(uint64(value), 10))
 }
+
+// Merge two entries by updating values for master entry with given.
+func (master *Entry) Merge(entry *Entry) {
+	for name, value := range entry.fields {
+		master.SetField(name, value)
+	}
+}

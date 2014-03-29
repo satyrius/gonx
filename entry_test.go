@@ -68,3 +68,21 @@ func TestSetEntryUintField(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, value, "123")
 }
+
+func TestMergeEntries(t *testing.T) {
+	entry1 := NewEntry(Fields{"foo": "1", "bar": "hello"})
+	entry2 := NewEntry(Fields{"foo": "2", "bar": "hello", "name": "alpha"})
+	entry1.Merge(entry2)
+
+	val, err := entry1.Field("foo")
+	assert.NoError(t, err)
+	assert.Equal(t, val, "2")
+
+	val, err = entry1.Field("bar")
+	assert.NoError(t, err)
+	assert.Equal(t, val, "hello")
+
+	val, err = entry1.Field("name")
+	assert.NoError(t, err)
+	assert.Equal(t, val, "alpha")
+}
