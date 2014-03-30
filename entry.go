@@ -3,6 +3,7 @@ package gonx
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // Shortcut for the map of strings
@@ -67,4 +68,25 @@ func (master *Entry) Merge(entry *Entry) {
 	for name, value := range entry.fields {
 		master.SetField(name, value)
 	}
+}
+
+func (entry *Entry) FieldsHash(fields []string) string {
+	var key []string
+	for _, name := range fields {
+		value, err := entry.Field(name)
+		if err != nil {
+			value = "NULL"
+		}
+		key = append(key, fmt.Sprintf("'%v'=%v", name, value))
+	}
+	return strings.Join(key, ";")
+}
+
+func (entry *Entry) Partial(fields []string) *Entry {
+	partial := NewEmptyEntry()
+	for _, name := range fields {
+		value, _ := entry.Field(name)
+		partial.SetField(name, value)
+	}
+	return partial
 }

@@ -1,10 +1,5 @@
 package gonx
 
-import (
-	"fmt"
-	"strings"
-)
-
 // Reducer interface for Entries channel redure.
 //
 // Each Reduce method should accept input channel of Entries, do it's job and
@@ -131,8 +126,8 @@ func (r *Chain) Reduce(input chan *Entry, output chan *Entry) {
 			sub <- entry
 		}
 	}
-	for _, subChannel := range subInput {
-		close(subChannel)
+	for _, ch := range subInput {
+		close(ch)
 	}
 
 	// Merge all results
@@ -159,32 +154,30 @@ func NewGroupBy(fields []string, reducers ...Reducer) *GroupBy {
 	}
 }
 
-func (r *GroupBy) GetEntryKey(entry *Entry) string {
-	var key []string
-	for _, name := range r.Fields {
-		value, err := entry.Field(name)
-		if err != nil {
-			value = "NULL"
-		}
-		key = append(key, fmt.Sprintf("'%v'=%v", name, value))
-	}
-	return strings.Join(key, ";")
-}
-
 // Apply related reducers and group data by Fields.
 func (r *GroupBy) Reduce(input chan *Entry, output chan *Entry) {
-	subscribe := make([]chan *Entry, len(r.reducers))
-	result := make([]chan *Entry, len(r.reducers))
-	for i, reducer := range r.reducers {
-		subscribe[i] = make(chan *Entry, 10)
-		result[i] = make(chan *Entry, 10)
-		go reducer.Reduce(subscribe[i], result[i])
-	}
-	// Read reducer master input channel
+	subInput := make(map[string]chan *Entry)
+	subOutput := make(map[string]chan *Entry)
+
+	// Read reducer master input channel and create discinct input chanel
+	// for each entry key we group by
 	for entry := range input {
-		// Publish input entry for each sub-reducers to process
-		for _, sub := range subscribe {
-			sub <- entry
+		key := entry.FieldsHash(r.Fields)
+		if _, ok := subInput[key]; !ok {
+			subInput[key] = make(chan *Entry, cap(input))
+			subOutput[key] = make(chan *Entry, cap(output)+1)
+			subOutput[key] <- entry.Partial(r.Fields)
+			go NewChain(r.reducers...).Reduce(subInput[key], subOutput[key])
 		}
+		subInput[key] <- entry
 	}
+	for _, ch := range subInput {
+		close(ch)
+	}
+	for _, ch := range subOutput {
+		entry := <-ch
+		entry.Merge(<-ch)
+		output <- entry
+	}
+	close(output)
 }

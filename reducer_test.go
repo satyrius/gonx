@@ -153,24 +153,6 @@ func TestChainReducer(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestGetEntryKey(t *testing.T) {
-	entry1 := NewEntry(Fields{"foo": "1", "bar": "Hello world #1", "name": "alpha"})
-	entry2 := NewEntry(Fields{"foo": "2", "bar": "Hello world #2", "name": "alpha"})
-	entry3 := NewEntry(Fields{"foo": "2", "bar": "Hello world #3", "name": "alpha"})
-	entry4 := NewEntry(Fields{"foo": "3", "bar": "Hello world #4", "name": "beta"})
-
-	reducer := NewGroupBy([]string{"name"})
-	assert.Equal(t, reducer.GetEntryKey(entry1), reducer.GetEntryKey(entry2))
-	assert.Equal(t, reducer.GetEntryKey(entry1), reducer.GetEntryKey(entry3))
-	assert.NotEqual(t, reducer.GetEntryKey(entry1), reducer.GetEntryKey(entry4))
-
-	reducer = NewGroupBy([]string{"name", "foo"})
-	assert.NotEqual(t, reducer.GetEntryKey(entry1), reducer.GetEntryKey(entry2))
-	assert.Equal(t, reducer.GetEntryKey(entry2), reducer.GetEntryKey(entry3))
-	assert.NotEqual(t, reducer.GetEntryKey(entry1), reducer.GetEntryKey(entry4))
-	assert.NotEqual(t, reducer.GetEntryKey(entry2), reducer.GetEntryKey(entry4))
-}
-
 func TestGroupByReducer(t *testing.T) {
 	reducer := NewGroupBy(
 		// Fields to group by
@@ -205,8 +187,46 @@ func TestGroupByReducer(t *testing.T) {
 		"baz":  "9",
 	})
 	close(input)
-	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
+	output := make(chan *Entry, 2) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
 
-	// TODO read entries from output and assert grouped data
+	// Read and assert first group result
+	result, ok := <-output
+	assert.True(t, ok)
+
+	value, err := result.Field("host")
+	assert.NoError(t, err)
+	assert.Equal(t, value, "alpha.example.com")
+
+	floatVal, err := result.FloatField("foo")
+	assert.NoError(t, err)
+	assert.Equal(t, floatVal, 1.0)
+
+	floatVal, err = result.FloatField("bar")
+	assert.NoError(t, err)
+	assert.Equal(t, floatVal, 2.0)
+
+	value, err = result.Field("count")
+	assert.NoError(t, err)
+	assert.Equal(t, value, "1")
+
+	// Read and assert second group result
+	result, ok = <-output
+	assert.True(t, ok)
+
+	value, err = result.Field("host")
+	assert.NoError(t, err)
+	assert.Equal(t, value, "beta.example.com")
+
+	floatVal, err = result.FloatField("foo")
+	assert.NoError(t, err)
+	assert.Equal(t, floatVal, 4.0+7.0)
+
+	floatVal, err = result.FloatField("bar")
+	assert.NoError(t, err)
+	assert.Equal(t, floatVal, 5.0+8.0)
+
+	value, err = result.Field("count")
+	assert.NoError(t, err)
+	assert.Equal(t, value, "2")
 }
