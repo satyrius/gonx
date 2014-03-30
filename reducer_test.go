@@ -19,8 +19,8 @@ func TestReadAllReducer(t *testing.T) {
 	reducer.Reduce(input, output)
 
 	// ReadAll reducer writes input channel to the output
-	result, opened := <-output
-	assert.True(t, opened)
+	result, ok := <-output
+	assert.True(t, ok)
 	assert.Equal(t, result, entry)
 }
 
@@ -37,8 +37,8 @@ func TestCountReducer(t *testing.T) {
 	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
 
-	result, opened := <-output
-	assert.True(t, opened)
+	result, ok := <-output
+	assert.True(t, ok)
 	count, err := result.Field("count")
 	assert.NoError(t, err)
 	assert.Equal(t, count, "2")
@@ -66,8 +66,8 @@ func TestSumReducer(t *testing.T) {
 	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
 
-	result, opened := <-output
-	assert.True(t, opened)
+	result, ok := <-output
+	assert.True(t, ok)
 	value, err := result.FloatField("foo")
 	assert.NoError(t, err)
 	assert.Equal(t, value, 123.0+456)
@@ -100,14 +100,55 @@ func TestAvgReducer(t *testing.T) {
 	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
 
-	result, opened := <-output
-	assert.True(t, opened)
+	result, ok := <-output
+	assert.True(t, ok)
 	value, err := result.FloatField("foo")
 	assert.NoError(t, err)
 	assert.Equal(t, value, (123.0+456)/2.0)
 	value, err = result.FloatField("bar")
 	assert.NoError(t, err)
 	assert.Equal(t, value, (234.0+567.0)/2.0)
+	_, err = result.Field("buz")
+	assert.Error(t, err)
+}
+
+func TestChainReducer(t *testing.T) {
+	reducer := NewChain(&Avg{[]string{"foo", "bar"}}, &Count{})
+	assert.Implements(t, (*Reducer)(nil), reducer)
+
+	// Prepare import channel
+	input := make(chan *Entry, 2)
+	input <- NewEntry(Fields{
+		"uri": "/asd/fgh",
+		"foo": "123",
+		"bar": "234",
+		"baz": "345",
+	})
+	input <- NewEntry(Fields{
+		"uri": "/zxc/vbn",
+		"foo": "456",
+		"bar": "567",
+		"baz": "678",
+	})
+	close(input)
+	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
+	reducer.Reduce(input, output)
+
+	result, ok := <-output
+	assert.True(t, ok)
+
+	value, err := result.FloatField("foo")
+	assert.NoError(t, err)
+	assert.Equal(t, value, (123.0+456)/2.0)
+
+	value, err = result.FloatField("bar")
+	assert.NoError(t, err)
+	assert.Equal(t, value, (234.0+567.0)/2.0)
+
+	count, err := result.Field("count")
+	assert.NoError(t, err)
+	assert.Equal(t, count, "2")
+
 	_, err = result.Field("buz")
 	assert.Error(t, err)
 }
