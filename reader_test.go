@@ -13,11 +13,11 @@ func TestRead(t *testing.T) {
 	reader := NewReader(file, format)
 	assert.Nil(t, reader.entries)
 
-	expected := Entry{
+	expected := NewEntry(Fields{
 		"remote_addr": "89.234.89.123",
 		"time_local":  "08/Nov/2013:13:39:18 +0000",
 		"request":     "GET /api/foo/bar HTTP/1.1",
-	}
+	})
 
 	// Read entry from incoming channel
 	entry, err := reader.Read()

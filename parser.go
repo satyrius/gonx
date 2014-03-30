@@ -23,7 +23,7 @@ func NewParser(format string) *Parser {
 
 // Parse log file line using internal format regexp. If line do not match
 // given format an error will be returned.
-func (parser *Parser) ParseString(line string) (entry Entry, err error) {
+func (parser *Parser) ParseString(line string) (entry *Entry, err error) {
 	re := parser.regexp
 	fields := re.FindStringSubmatch(line)
 	if fields == nil {
@@ -32,12 +32,12 @@ func (parser *Parser) ParseString(line string) (entry Entry, err error) {
 	}
 
 	// Iterate over subexp foung and fill the map record
-	entry = make(Entry)
+	entry = NewEmptyEntry()
 	for i, name := range re.SubexpNames() {
 		if i == 0 {
 			continue
 		}
-		entry[name] = fields[i]
+		entry.SetField(name, fields[i])
 	}
 	return
 }

@@ -15,13 +15,13 @@ func handleError(err error) {
 // when result will be readed from reducer's output channel, but the mapper
 // works and fills input Entries channel until all lines will be read from
 // the fiven file.
-func MapReduce(file io.Reader, parser *Parser, reducer Reducer) interface{} {
+func MapReduce(file io.Reader, parser *Parser, reducer Reducer) chan *Entry {
 	// Input file lines. This channel is unbuffered to publish
 	// next line to handle only when previous is taken by mapper.
 	var lines = make(chan string)
 
 	// Host thread to spawn new mappers
-	var entries = make(chan Entry, 10)
+	var entries = make(chan *Entry, 10)
 	go func(topLoad int) {
 		// Create semafore channel with capacity equal to the output channel
 		// capacity. Use it to control mapper goroutines spawn.
@@ -68,7 +68,7 @@ func MapReduce(file io.Reader, parser *Parser, reducer Reducer) interface{} {
 	}(cap(entries))
 
 	// Run reducer routine.
-	var output = make(chan interface{})
+	var output = make(chan *Entry)
 	go reducer.Reduce(entries, output)
 
 	go func() {
@@ -84,5 +84,5 @@ func MapReduce(file io.Reader, parser *Parser, reducer Reducer) interface{} {
 		}
 	}()
 
-	return <-output
+	return output
 }
