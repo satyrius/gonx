@@ -190,13 +190,18 @@ func TestGroupByReducer(t *testing.T) {
 	output := make(chan *Entry, 2) // Make it buffered to avoid deadlock
 	reducer.Reduce(input, output)
 
-	// Read and assert first group result
-	result, ok := <-output
-	assert.True(t, ok)
+	// Collect result entries from output channel to the map, because reading
+	// from channel can be in any order, it depends on each reducer processing
+	resultMap := make(map[string]*Entry)
+	for result := range output {
+		value, err := result.Field("host")
+		assert.NoError(t, err)
+		resultMap[value] = result
+	}
+	assert.Equal(t, len(resultMap), 2)
 
-	value, err := result.Field("host")
-	assert.NoError(t, err)
-	assert.Equal(t, value, "alpha.example.com")
+	// Read and assert first group result
+	result := resultMap["alpha.example.com"]
 
 	floatVal, err := result.FloatField("foo")
 	assert.NoError(t, err)
@@ -206,17 +211,12 @@ func TestGroupByReducer(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, floatVal, 2.0)
 
-	value, err = result.Field("count")
+	value, err := result.Field("count")
 	assert.NoError(t, err)
 	assert.Equal(t, value, "1")
 
 	// Read and assert second group result
-	result, ok = <-output
-	assert.True(t, ok)
-
-	value, err = result.Field("host")
-	assert.NoError(t, err)
-	assert.Equal(t, value, "beta.example.com")
+	result = resultMap["beta.example.com"]
 
 	floatVal, err = result.FloatField("foo")
 	assert.NoError(t, err)
