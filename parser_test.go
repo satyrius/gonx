@@ -29,7 +29,7 @@ func (suite *ParserTestSuite) TestFormatSaved() {
 func (suite *ParserTestSuite) TestRegexp() {
 	assert.Equal(suite.T(),
 		suite.parser.regexp.String(),
-		`^(?P<remote_addr>[^ ]+) \[(?P<time_local>[^]]+)\] "(?P<request>[^"]+)"$`)
+		`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<request>[^"]*)"$`)
 }
 
 func (suite *ParserTestSuite) TestParseString() {
@@ -48,7 +48,18 @@ func (suite *ParserTestSuite) TestParseInvalidString() {
 	line := `GET /api/foo/bar HTTP/1.1`
 	_, err := suite.parser.ParseString(line)
 	assert.Error(suite.T(), err)
-	// TODO test empty value
+}
+
+func (suite *ParserTestSuite) TestEmptyValue() {
+	line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] ""`
+	expected := NewEntry(Fields{
+		"remote_addr": "89.234.89.123",
+		"time_local":  "08/Nov/2013:13:39:18 +0000",
+		"request":     "",
+	})
+	entry, err := suite.parser.ParseString(line)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), entry, expected)
 }
 
 func TestNginxParser(t *testing.T) {
