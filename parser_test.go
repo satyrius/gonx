@@ -14,7 +14,7 @@ type ParserTestSuite struct {
 }
 
 func (suite *ParserTestSuite) SetupTest() {
-	suite.format = "$remote_addr [$time_local] \"$request\""
+	suite.format = "$remote_addr [$time_local] \"$request\" $status"
 	suite.parser = NewParser(suite.format)
 }
 
@@ -29,15 +29,16 @@ func (suite *ParserTestSuite) TestFormatSaved() {
 func (suite *ParserTestSuite) TestRegexp() {
 	assert.Equal(suite.T(),
 		suite.parser.regexp.String(),
-		`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<request>[^"]*)"$`)
+		`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<request>[^"]*)" (?P<status>[^ ]*)$`)
 }
 
 func (suite *ParserTestSuite) TestParseString() {
-	line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`
+	line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1" 200`
 	expected := NewEntry(Fields{
 		"remote_addr": "89.234.89.123",
 		"time_local":  "08/Nov/2013:13:39:18 +0000",
 		"request":     "GET /api/foo/bar HTTP/1.1",
+		"status":      "200",
 	})
 	entry, err := suite.parser.ParseString(line)
 	assert.NoError(suite.T(), err)
@@ -51,11 +52,12 @@ func (suite *ParserTestSuite) TestParseInvalidString() {
 }
 
 func (suite *ParserTestSuite) TestEmptyValue() {
-	line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] ""`
+	line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "" 200`
 	expected := NewEntry(Fields{
 		"remote_addr": "89.234.89.123",
 		"time_local":  "08/Nov/2013:13:39:18 +0000",
 		"request":     "",
+		"status":      "200",
 	})
 	entry, err := suite.parser.ParseString(line)
 	assert.NoError(suite.T(), err)

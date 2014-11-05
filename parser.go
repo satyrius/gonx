@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"strings"
 )
 
 // Log record parser. Use specific constructors to initialize it.
@@ -17,8 +18,8 @@ type Parser struct {
 // strings parsing regexp.
 func NewParser(format string) *Parser {
 	re := regexp.MustCompile(`\\\$([a-z_]+)(\\?(.))`).ReplaceAllString(
-		regexp.QuoteMeta(format), "(?P<$1>[^$3]*)$2")
-	return &Parser{format, regexp.MustCompile(fmt.Sprintf("^%v$", re))}
+		regexp.QuoteMeta(format + " "), "(?P<$1>[^$3]*)$2")
+	return &Parser{format, regexp.MustCompile(fmt.Sprintf("^%v$", strings.Trim(re, " ")))}
 }
 
 // Parse log file line using internal format regexp. If line do not match
