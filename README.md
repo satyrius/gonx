@@ -37,6 +37,8 @@ See more examples in `example/*.go` sources.
 
 ## Performance
 
+NOTE All benchmarks was made on my old *11" MacBook Air 2011*, so you should get the better results for your brand new hardware ;-)
+
 I have a few benchmarks for parsing `string` log record into `Entry` using `gonx.Parser`
 
 	BenchmarkParseSimpleLogRecord      100000            19457 ns/op
