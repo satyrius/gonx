@@ -79,6 +79,10 @@ capability will be supported for the following public interfaces.
 
 All major changes will be noticed in [release notes](https://github.com/satyrius/gonx/releases).
 
+## Roadmap
+
+I have no roadmap for this project at the moment for a few reasons. At the first, it is a simple library and I want to keep it. At the second, there is no feature requests, and for me, this library do its job. A few things may happen: the default binary, to use this not only as a library, and performance improvements if they will be needed.
+
 ## Contributing
 
 Fork the repo, create a feature branch then send me pull request. Feel free to create new issues or contact me using email.
