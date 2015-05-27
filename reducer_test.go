@@ -3,6 +3,7 @@ package gonx
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestReadAllReducer(t *testing.T) {
@@ -229,4 +230,75 @@ func TestGroupByReducer(t *testing.T) {
 	value, err = result.Field("count")
 	assert.NoError(t, err)
 	assert.Equal(t, value, "2")
+}
+
+func TestIntervalReducer(t *testing.T) {
+	reducer := &Interval{
+		Field:  "timestamp",
+		Format: time.RFC3339,
+		Start:  time.Date(2015, time.February, 2, 2, 2, 2, 0, time.UTC),
+		End:    time.Date(2015, time.May, 5, 5, 5, 5, 0, time.UTC),
+	}
+	assert.Implements(t, (*Reducer)(nil), reducer)
+
+	// Prepare import channel
+	input := make(chan *Entry, 5)
+	input <- NewEntry(Fields{
+		"timestamp": "2015-01-01T01:01:01Z",
+		"foo":       "123",
+		"bar":       "234",
+		"baz":       "345",
+	})
+	input <- NewEntry(Fields{
+		"timestamp": "2015-02-02T02:02:02Z",
+		"foo":       "456",
+		"bar":       "567",
+		"baz":       "678",
+	})
+	input <- NewEntry(Fields{
+		"timestamp": "2015-03-03T03:03:03Z",
+		"foo":       "789",
+		"bar":       "891",
+		"baz":       "912",
+	})
+	input <- NewEntry(Fields{
+		"timestamp": "2015-04-04T04:04:04Z",
+		"foo":       "123",
+		"bar":       "234",
+		"baz":       "345",
+	})
+	input <- NewEntry(Fields{
+		"timestamp": "2015-05-05T05:05:05Z",
+		"foo":       "456",
+		"bar":       "567",
+		"baz":       "678",
+	})
+	close(input)
+
+	output := make(chan *Entry, 5) // Make it buffered to avoid deadlock
+	reducer.Reduce(input, output)
+
+	want := []string{
+		"'timestamp'=2015-02-02T02:02:02Z;'foo'=456;'bar'=567;'baz'=678",
+		"'timestamp'=2015-03-03T03:03:03Z;'foo'=789;'bar'=891;'baz'=912",
+		"'timestamp'=2015-04-04T04:04:04Z;'foo'=123;'bar'=234;'baz'=345",
+	}
+	results := []string{}
+
+	for {
+		result, ok := <-output
+		if !ok {
+			break
+		}
+		results = append(
+			results,
+			result.FieldsHash([]string{
+				"timestamp",
+				"foo",
+				"bar",
+				"baz",
+			}),
+		)
+	}
+	assert.Equal(t, results, want)
 }

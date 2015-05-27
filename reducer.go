@@ -1,5 +1,7 @@
 package gonx
 
+import "time"
+
 // Reducer interface for Entries channel redure.
 //
 // Each Reduce method should accept input channel of Entries, do it's job and
@@ -180,4 +182,42 @@ func (r *GroupBy) Reduce(input chan *Entry, output chan *Entry) {
 		output <- entry
 	}
 	close(output)
+}
+
+// Implements Reducer interface to filter Entries with timestamp fields within
+// the specified interval.
+type Interval struct {
+	Field  string
+	Format string
+	Start  time.Time
+	End    time.Time
+}
+
+// Check if the value of the specified field from the Entry is within the specified
+// interval range.
+func (i *Interval) Reduce(input chan *Entry, output chan *Entry) {
+	for entry := range input {
+		val, err := entry.Field(i.Field)
+		if err != nil {
+			continue
+		}
+		t, err := time.Parse(i.Format, val)
+		if err != nil {
+			continue
+		}
+		if i.withinBounds(t) {
+			output <- entry
+		}
+	}
+	close(output)
+}
+
+func (i *Interval) withinBounds(t time.Time) bool {
+	if t.Equal(i.Start) {
+		return true
+	}
+	if t.After(i.Start) && t.Before(i.End) {
+		return true
+	}
+	return false
 }
