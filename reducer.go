@@ -32,7 +32,7 @@ type Count struct {
 
 // Simply count entrries and write a sum to the output channel
 func (r *Count) Reduce(input chan *Entry, output chan *Entry) {
-	var count uint64 = 0
+	var count uint64
 	for {
 		_, ok := <-input
 		if !ok {
