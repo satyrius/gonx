@@ -181,3 +181,35 @@ func (r *GroupBy) Reduce(input chan *Entry, output chan *Entry) {
 	}
 	close(output)
 }
+
+// Implements Reducer interface to apply other reducers one by one using the output
+// of the previous reducer as the input for the next one.
+type Pipeline struct {
+	reducers []Reducer
+}
+
+func NewPipeline(reducers ...Reducer) *Pipeline {
+	return &Pipeline{reducers: reducers}
+}
+
+// Apply related reducers one by one.
+func (p *Pipeline) Reduce(input chan *Entry, output chan *Entry) {
+	subInput := make(chan *Entry, cap(input))
+	subOutput := input
+
+	for _, reducer := range p.reducers {
+		// switch input with previous output
+		subInput, subOutput = subOutput, make(chan *Entry, cap(output))
+
+		reducer.Reduce(subInput, subOutput)
+	}
+
+	for {
+		entry, ok := <-subOutput
+		if !ok {
+			break
+		}
+		output <- entry
+	}
+	close(output)
+}

@@ -230,3 +230,27 @@ func TestGroupByReducer(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, value, "2")
 }
+
+func TestPipelineReducer(t *testing.T) {
+	reducer := NewPipeline(
+		new(ReadAll),
+		new(Count),
+		&Avg{[]string{"count"}},
+	)
+	assert.Implements(t, (*Reducer)(nil), reducer)
+
+	// Prepare import channel
+	input := make(chan *Entry, 2)
+	input <- NewEmptyEntry()
+	input <- NewEmptyEntry()
+	close(input)
+
+	output := make(chan *Entry, 2) // Make it buffered to avoid deadlock
+	reducer.Reduce(input, output)
+
+	result, ok := <-output
+	assert.True(t, ok)
+	value, err := result.FloatField("count")
+	assert.NoError(t, err)
+	assert.Equal(t, value, 2.0)
+}
