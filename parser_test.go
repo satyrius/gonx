@@ -39,6 +39,7 @@ func (suite *ParserTestSuite) TestParseString() {
 		"time_local":  "08/Nov/2013:13:39:18 +0000",
 		"request":     "GET /api/foo/bar HTTP/1.1",
 		"status":      "200",
+		"raw_line":    `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1" 200`,
 	})
 	entry, err := suite.parser.ParseString(line)
 	assert.NoError(suite.T(), err)
@@ -58,6 +59,7 @@ func (suite *ParserTestSuite) TestEmptyValue() {
 		"time_local":  "08/Nov/2013:13:39:18 +0000",
 		"request":     "",
 		"status":      "200",
+		"raw_line":    `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "" 200`,
 	})
 	entry, err := suite.parser.ParseString(line)
 	assert.NoError(suite.T(), err)
