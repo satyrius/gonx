@@ -18,7 +18,7 @@ type Parser struct {
 // strings parsing regexp.
 func NewParser(format string) *Parser {
 	re := regexp.MustCompile(`\\\$([a-z_]+)(\\?(.))`).ReplaceAllString(
-		regexp.QuoteMeta(format + " "), "(?P<$1>[^$3]*)$2")
+		regexp.QuoteMeta(format+" "), "(?P<$1>[^$3]*)$2")
 	return &Parser{format, regexp.MustCompile(fmt.Sprintf("^%v$", strings.Trim(re, " ")))}
 }
 
@@ -28,7 +28,7 @@ func (parser *Parser) ParseString(line string) (entry *Entry, err error) {
 	re := parser.regexp
 	fields := re.FindStringSubmatch(line)
 	if fields == nil {
-		err = fmt.Errorf("Access log line '%v' does not match given format '%v'", line, re)
+		err = fmt.Errorf("access log line '%v' does not match given format '%v'", line, re)
 		return
 	}
 
