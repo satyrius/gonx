@@ -37,8 +37,11 @@ func main() {
 		defer file.Close()
 	}
 
-	// Create reader and call Read method until EOF
-	reducer := gonx.NewChain(&gonx.Avg{[]string{"request_time"}}, &gonx.Count{})
+	// Make a chain of reducers to get some stats from log file
+	reducer := gonx.NewChain(
+		&gonx.Avg{[]string{"request_time", "read_time", "gen_time"}},
+		&gonx.Sum{[]string{"body_bytes_sent"}},
+		&gonx.Count{})
 	output := gonx.MapReduce(file, parser, reducer)
 	for res := range output {
 		// Process the record... e.g.
