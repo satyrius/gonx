@@ -65,6 +65,6 @@ func main() {
 			panic(err)
 		}
 		// Process the record... e.g.
-		fmt.Printf("%+v\n", rec)
+		fmt.Printf("Parsed entry: %+v\n", rec)
 	}
 }
