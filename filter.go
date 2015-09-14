@@ -4,10 +4,11 @@ import "time"
 
 // Filter interface for Entries channel limiting.
 //
-// Filter method should accept input channel of Entries, deicide to keep
-// or not to keep given entry. Write entry to the output channel if positive.
+// Filter method should accept *Entry and return *Entry if it meets
+// filter condition, otherwise it returns nil.
 type Filter interface {
-	Filter(input chan *Entry, output chan *Entry)
+	Reducer
+	Filter(*Entry) *Entry
 }
 
 // Implements Filter interface to filter Entries with timestamp fields within
@@ -20,20 +21,28 @@ type Datetime struct {
 }
 
 // Check field value to be in desired datetime range.
-func (i *Datetime) Filter(input chan *Entry, output chan *Entry) {
+func (i *Datetime) Filter(entry *Entry) (validEntry *Entry) {
+	val, err := entry.Field(i.Field)
+	if err != nil {
+		// TODO handle error
+		return
+	}
+	t, err := time.Parse(i.Format, val)
+	if err != nil {
+		// TODO handle error
+		return
+	}
+	if i.withinBounds(t) {
+		validEntry = entry
+	}
+	return
+}
+
+// Alias for Filter method. Need to to implement Reducer interface too.
+func (i *Datetime) Reduce(input chan *Entry, output chan *Entry) {
 	for entry := range input {
-		val, err := entry.Field(i.Field)
-		if err != nil {
-			// TODO handle error
-			continue
-		}
-		t, err := time.Parse(i.Format, val)
-		if err != nil {
-			// TODO handle error
-			continue
-		}
-		if i.withinBounds(t) {
-			output <- entry
+		if valid := i.Filter(entry); valid != nil {
+			output <- valid
 		}
 	}
 	close(output)

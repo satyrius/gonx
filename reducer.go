@@ -99,13 +99,22 @@ func (r *Avg) Reduce(input chan *Entry, output chan *Entry) {
 
 // Implements Reducer interface for chaining other reducers
 type Chain struct {
+	filters  []Filter
 	reducers []Reducer
 }
 
 func NewChain(reducers ...Reducer) *Chain {
-	return &Chain{
+	chain := &Chain{
 		reducers: reducers,
 	}
+	for _, r := range reducers {
+		if f, ok := interface{}(r).(Filter); ok {
+			chain.filters = append(chain.filters, f)
+		} else {
+			chain.reducers = append(chain.reducers, r)
+		}
+	}
+	return chain
 }
 
 // Apply chain of reducers to the input channel of entries and merge results
@@ -121,9 +130,17 @@ func (r *Chain) Reduce(input chan *Entry, output chan *Entry) {
 
 	// Read reducer master input channel
 	for entry := range input {
+		for _, f := range r.filters {
+			entry = f.Filter(entry)
+			if entry == nil {
+				break
+			}
+		}
 		// Publish input entry for each sub-reducers to process
-		for _, sub := range subInput {
-			sub <- entry
+		if entry != nil {
+			for _, sub := range subInput {
+				sub <- entry
+			}
 		}
 	}
 	for _, ch := range subInput {
