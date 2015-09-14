@@ -1,7 +1,5 @@
 package gonx
 
-import "time"
-
 // Reducer interface for Entries channel redure.
 //
 // Each Reduce method should accept input channel of Entries, do it's job and
@@ -101,13 +99,22 @@ func (r *Avg) Reduce(input chan *Entry, output chan *Entry) {
 
 // Implements Reducer interface for chaining other reducers
 type Chain struct {
+	filters  []Filter
 	reducers []Reducer
 }
 
 func NewChain(reducers ...Reducer) *Chain {
-	return &Chain{
+	chain := &Chain{
 		reducers: reducers,
 	}
+	for _, r := range reducers {
+		if f, ok := interface{}(r).(Filter); ok {
+			chain.filters = append(chain.filters, f)
+		} else {
+			chain.reducers = append(chain.reducers, r)
+		}
+	}
+	return chain
 }
 
 // Apply chain of reducers to the input channel of entries and merge results
@@ -123,9 +130,17 @@ func (r *Chain) Reduce(input chan *Entry, output chan *Entry) {
 
 	// Read reducer master input channel
 	for entry := range input {
+		for _, f := range r.filters {
+			entry = f.Filter(entry)
+			if entry == nil {
+				break
+			}
+		}
 		// Publish input entry for each sub-reducers to process
-		for _, sub := range subInput {
-			sub <- entry
+		if entry != nil {
+			for _, sub := range subInput {
+				sub <- entry
+			}
 		}
 	}
 	for _, ch := range subInput {
@@ -182,42 +197,4 @@ func (r *GroupBy) Reduce(input chan *Entry, output chan *Entry) {
 		output <- entry
 	}
 	close(output)
-}
-
-// Implements Reducer interface to filter Entries with timestamp fields within
-// the specified interval.
-type Interval struct {
-	Field  string
-	Format string
-	Start  time.Time
-	End    time.Time
-}
-
-// Check if the value of the specified field from the Entry is within the specified
-// interval range.
-func (i *Interval) Reduce(input chan *Entry, output chan *Entry) {
-	for entry := range input {
-		val, err := entry.Field(i.Field)
-		if err != nil {
-			continue
-		}
-		t, err := time.Parse(i.Format, val)
-		if err != nil {
-			continue
-		}
-		if i.withinBounds(t) {
-			output <- entry
-		}
-	}
-	close(output)
-}
-
-func (i *Interval) withinBounds(t time.Time) bool {
-	if t.Equal(i.Start) {
-		return true
-	}
-	if t.After(i.Start) && t.Before(i.End) {
-		return true
-	}
-	return false
 }
