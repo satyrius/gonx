@@ -38,7 +38,7 @@ func (i *Datetime) Filter(entry *Entry) (validEntry *Entry) {
 	return
 }
 
-// Alias for Filter method. Need to to implement Reducer interface too.
+// Reducer interface too. Go throught input and apply Filter.
 func (i *Datetime) Reduce(input chan *Entry, output chan *Entry) {
 	for entry := range input {
 		if valid := i.Filter(entry); valid != nil {
