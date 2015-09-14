@@ -49,11 +49,7 @@ func TestDatetimeFilter(t *testing.T) {
 	}
 	results := []string{}
 
-	for {
-		result, ok := <-output
-		if !ok {
-			break
-		}
+	for result := range output {
 		results = append(
 			results,
 			result.FieldsHash([]string{"timestamp", "foo"}),
