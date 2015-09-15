@@ -39,37 +39,38 @@ func TestEntry(t *testing.T) {
 			So(val, ShouldEqual, 0.0)
 		})
 	})
-}
 
-func TestSetEntryField(t *testing.T) {
-	entry := NewEmptyEntry()
-	assert.Equal(t, len(entry.fields), 0)
+	Convey("Test set Entry fields", t, func() {
+		entry := NewEmptyEntry()
 
-	entry.SetField("foo", "123")
-	value, err := entry.Field("foo")
-	assert.NoError(t, err)
-	assert.Equal(t, value, "123")
+		Convey("Set raw string value", func() {
+			// Set field value
+			entry.SetField("foo", "123")
+			val, err := entry.Field("foo")
+			So(err, ShouldBeNil)
+			So(val, ShouldEqual, "123")
 
-	entry.SetField("foo", "234")
-	value, err = entry.Field("foo")
-	assert.NoError(t, err)
-	assert.Equal(t, value, "234")
-}
+			// Ovewrite value
+			entry.SetField("foo", "234")
+			val, err = entry.Field("foo")
+			So(err, ShouldBeNil)
+			So(val, ShouldEqual, "234")
+		})
 
-func TestSetEntryFloatField(t *testing.T) {
-	entry := NewEmptyEntry()
-	entry.SetFloatField("foo", 123.4567)
-	value, err := entry.Field("foo")
-	assert.NoError(t, err)
-	assert.Equal(t, value, "123.46")
-}
+		Convey("Test set float Entry fields", func() {
+			entry.SetFloatField("foo", 123.4567)
+			val, err := entry.Field("foo")
+			So(err, ShouldBeNil)
+			So(val, ShouldEqual, "123.46")
+		})
 
-func TestSetEntryUintField(t *testing.T) {
-	entry := NewEmptyEntry()
-	entry.SetUintField("foo", 123)
-	value, err := entry.Field("foo")
-	assert.NoError(t, err)
-	assert.Equal(t, value, "123")
+		Convey("Test set uint Entry fields", func() {
+			entry.SetUintField("foo", 123)
+			value, err := entry.Field("foo")
+			assert.NoError(t, err)
+			assert.Equal(t, value, "123")
+		})
+	})
 }
 
 func TestMergeEntries(t *testing.T) {
