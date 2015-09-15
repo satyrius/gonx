@@ -1,41 +1,44 @@
 package gonx
 
 import (
+	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestGetEntry(t *testing.T) {
-	entry := NewEntry(Fields{"foo": "1"})
+func TestEntry(t *testing.T) {
+	Convey("Test get Entry fields", t, func() {
+		entry := NewEntry(Fields{"foo": "1", "bar": "not a number"})
 
-	// Get existings field
-	val, err := entry.Field("foo")
-	assert.NoError(t, err)
-	assert.Equal(t, val, "1")
+		Convey("Get raw string value", func() {
+			// Get existings field
+			val, err := entry.Field("foo")
+			So(err, ShouldBeNil)
+			So(val, ShouldEqual, "1")
 
-	// Get field that does not exist
-	val, err = entry.Field("bar")
-	assert.Error(t, err)
-	assert.Equal(t, val, "")
-}
+			// Get field that does not exist
+			val, err = entry.Field("baz")
+			So(err, ShouldNotBeNil)
+			So(val, ShouldEqual, "")
+		})
 
-func TestEntryFloatField(t *testing.T) {
-	entry := NewEntry(Fields{"foo": "1", "bar": "not a number"})
+		Convey("Get float values", func() {
+			// Get existings field
+			val, err := entry.FloatField("foo")
+			So(err, ShouldBeNil)
+			So(val, ShouldEqual, 1.0)
 
-	// Get existings field
-	val, err := entry.FloatField("foo")
-	assert.NoError(t, err)
-	assert.Equal(t, val, 1.0)
+			// Type casting eror
+			val, err = entry.FloatField("bar")
+			So(err, ShouldNotBeNil)
+			So(val, ShouldEqual, 0.0)
 
-	// Type casting eror
-	val, err = entry.FloatField("bar")
-	assert.Error(t, err)
-	assert.Equal(t, val, 0.0)
-
-	// Get field that does not exist
-	val, err = entry.FloatField("baz")
-	assert.Error(t, err)
-	assert.Equal(t, val, 0.0)
+			// Get field that does not exist
+			val, err = entry.FloatField("baz")
+			So(err, ShouldNotBeNil)
+			So(val, ShouldEqual, 0.0)
+		})
+	})
 }
 
 func TestSetEntryField(t *testing.T) {
