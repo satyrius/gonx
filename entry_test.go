@@ -107,15 +107,15 @@ func TestEntry(t *testing.T) {
 		So(entry1.FieldsHash(fields), ShouldNotEqual, entry4.FieldsHash(fields))
 		So(entry2.FieldsHash(fields), ShouldNotEqual, entry4.FieldsHash(fields))
 	})
-}
 
-func TestPartialEntry(t *testing.T) {
-	entry := NewEntry(Fields{"foo": "1", "bar": "Hello world #1", "name": "alpha"})
-	partial := entry.Partial([]string{"name", "foo"})
+	Convey("Test partial Entry", t, func() {
+		entry := NewEntry(Fields{"foo": "1", "bar": "Hello world #1", "name": "alpha"})
+		partial := entry.Partial([]string{"name", "foo"})
 
-	assert.Equal(t, len(partial.fields), 2)
-	val, _ := partial.Field("name")
-	assert.Equal(t, val, "alpha")
-	val, _ = partial.Field("foo")
-	assert.Equal(t, val, "1")
+		assert.Equal(t, len(partial.fields), 2)
+		val, _ := partial.Field("name")
+		So(val, ShouldEqual, "alpha")
+		val, _ = partial.Field("foo")
+		So(val, ShouldEqual, "1")
+	})
 }
