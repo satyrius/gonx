@@ -66,29 +66,29 @@ func TestEntry(t *testing.T) {
 
 		Convey("Test set uint Entry fields", func() {
 			entry.SetUintField("foo", 123)
-			value, err := entry.Field("foo")
-			assert.NoError(t, err)
-			assert.Equal(t, value, "123")
+			val, err := entry.Field("foo")
+			So(err, ShouldBeNil)
+			So(val, ShouldEqual, "123")
 		})
 	})
-}
 
-func TestMergeEntries(t *testing.T) {
-	entry1 := NewEntry(Fields{"foo": "1", "bar": "hello"})
-	entry2 := NewEntry(Fields{"foo": "2", "bar": "hello", "name": "alpha"})
-	entry1.Merge(entry2)
+	Convey("Test Entries merge", t, func() {
+		entry1 := NewEntry(Fields{"foo": "1", "bar": "hello"})
+		entry2 := NewEntry(Fields{"foo": "2", "bar": "hello", "name": "alpha"})
+		entry1.Merge(entry2)
 
-	val, err := entry1.Field("foo")
-	assert.NoError(t, err)
-	assert.Equal(t, val, "2")
+		val, err := entry1.Field("foo")
+		So(err, ShouldBeNil)
+		So(val, ShouldEqual, "2")
 
-	val, err = entry1.Field("bar")
-	assert.NoError(t, err)
-	assert.Equal(t, val, "hello")
+		val, err = entry1.Field("bar")
+		So(err, ShouldBeNil)
+		So(val, ShouldEqual, "hello")
 
-	val, err = entry1.Field("name")
-	assert.NoError(t, err)
-	assert.Equal(t, val, "alpha")
+		val, err = entry1.Field("name")
+		So(err, ShouldBeNil)
+		So(val, ShouldEqual, "alpha")
+	})
 }
 
 func TestGetEntryGroupHash(t *testing.T) {
