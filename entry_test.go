@@ -89,24 +89,24 @@ func TestEntry(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(val, ShouldEqual, "alpha")
 	})
-}
 
-func TestGetEntryGroupHash(t *testing.T) {
-	entry1 := NewEntry(Fields{"foo": "1", "bar": "Hello world #1", "name": "alpha"})
-	entry2 := NewEntry(Fields{"foo": "2", "bar": "Hello world #2", "name": "alpha"})
-	entry3 := NewEntry(Fields{"foo": "2", "bar": "Hello world #3", "name": "alpha"})
-	entry4 := NewEntry(Fields{"foo": "3", "bar": "Hello world #4", "name": "beta"})
+	Convey("Test Entry fields hash", t, func() {
+		entry1 := NewEntry(Fields{"foo": "1", "bar": "Hello world #1", "name": "alpha"})
+		entry2 := NewEntry(Fields{"foo": "2", "bar": "Hello world #2", "name": "alpha"})
+		entry3 := NewEntry(Fields{"foo": "2", "bar": "Hello world #3", "name": "alpha"})
+		entry4 := NewEntry(Fields{"foo": "3", "bar": "Hello world #4", "name": "beta"})
 
-	fields := []string{"name"}
-	assert.Equal(t, entry1.FieldsHash(fields), entry2.FieldsHash(fields))
-	assert.Equal(t, entry1.FieldsHash(fields), entry3.FieldsHash(fields))
-	assert.NotEqual(t, entry1.FieldsHash(fields), entry4.FieldsHash(fields))
+		fields := []string{"name"}
+		So(entry1.FieldsHash(fields), ShouldEqual, entry2.FieldsHash(fields))
+		So(entry1.FieldsHash(fields), ShouldEqual, entry3.FieldsHash(fields))
+		So(entry1.FieldsHash(fields), ShouldNotEqual, entry4.FieldsHash(fields))
 
-	fields = []string{"name", "foo"}
-	assert.NotEqual(t, entry1.FieldsHash(fields), entry2.FieldsHash(fields))
-	assert.Equal(t, entry2.FieldsHash(fields), entry3.FieldsHash(fields))
-	assert.NotEqual(t, entry1.FieldsHash(fields), entry4.FieldsHash(fields))
-	assert.NotEqual(t, entry2.FieldsHash(fields), entry4.FieldsHash(fields))
+		fields = []string{"name", "foo"}
+		So(entry1.FieldsHash(fields), ShouldNotEqual, entry2.FieldsHash(fields))
+		So(entry2.FieldsHash(fields), ShouldEqual, entry3.FieldsHash(fields))
+		So(entry1.FieldsHash(fields), ShouldNotEqual, entry4.FieldsHash(fields))
+		So(entry2.FieldsHash(fields), ShouldNotEqual, entry4.FieldsHash(fields))
+	})
 }
 
 func TestPartialEntry(t *testing.T) {
