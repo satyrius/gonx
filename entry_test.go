@@ -2,7 +2,6 @@ package gonx
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -112,7 +111,7 @@ func TestEntry(t *testing.T) {
 		entry := NewEntry(Fields{"foo": "1", "bar": "Hello world #1", "name": "alpha"})
 		partial := entry.Partial([]string{"name", "foo"})
 
-		assert.Equal(t, len(partial.fields), 2)
+		So(len(partial.fields), ShouldEqual, 2)
 		val, _ := partial.Field("name")
 		So(val, ShouldEqual, "alpha")
 		val, _ = partial.Field("foo")
