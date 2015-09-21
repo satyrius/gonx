@@ -1,11 +1,23 @@
 package gonx
 
 import (
+	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"strings"
 	"testing"
 )
+
+func TestParser(t *testing.T) {
+	Convey("Test Parser", t, func() {
+		format := "$remote_addr [$time_local] \"$request\" $status"
+		parser := NewParser(format)
+
+		Convey("Enfure parser format is ok", func() {
+			So(parser.format, ShouldEqual, format)
+		})
+	})
+}
 
 type ParserTestSuite struct {
 	suite.Suite
@@ -20,10 +32,6 @@ func (suite *ParserTestSuite) SetupTest() {
 
 func TestParserTestSuite(t *testing.T) {
 	suite.Run(t, new(ParserTestSuite))
-}
-
-func (suite *ParserTestSuite) TestFormatSaved() {
-	assert.Equal(suite.T(), suite.parser.format, suite.format)
 }
 
 func (suite *ParserTestSuite) TestRegexp() {
