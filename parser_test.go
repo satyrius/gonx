@@ -2,8 +2,6 @@ package gonx
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 	"strings"
 	"testing"
 )
@@ -54,39 +52,24 @@ func TestParser(t *testing.T) {
 			So(err, ShouldNotBeNil)
 		})
 	})
-}
 
-type ParserTestSuite struct {
-	suite.Suite
-	format string
-	parser *Parser
-}
-
-func (suite *ParserTestSuite) SetupTest() {
-	suite.format = "$remote_addr [$time_local] \"$request\" $status"
-	suite.parser = NewParser(suite.format)
-}
-
-func TestParserTestSuite(t *testing.T) {
-	suite.Run(t, new(ParserTestSuite))
-}
-
-func TestNginxParser(t *testing.T) {
-	expected := "$remote_addr - $remote_user [$time_local] \"$request\" $status \"$http_referer\" \"$http_user_agent\""
-	conf := strings.NewReader(`
-        http {
-            include      conf/mime.types;
-            log_format   minimal  '$remote_addr [$time_local] "$request"';
-            log_format   main     '$remote_addr - $remote_user [$time_local] '
-                                  '"$request" $status '
-                                  '"$http_referer" "$http_user_agent"';
-            log_format   download '$remote_addr - $remote_user [$time_local] '
-                                  '"$request" $status $bytes_sent '
-                                  '"$http_referer" "$http_user_agent" '
-                                  '"$http_range" "$sent_http_content_range"';
-        }
-    `)
-	parser, err := NewNginxParser(conf, "main")
-	assert.NoError(t, err)
-	assert.Equal(t, parser.format, expected)
+	Convey("Nginx format parser", t, func() {
+		expected := "$remote_addr - $remote_user [$time_local] \"$request\" $status \"$http_referer\" \"$http_user_agent\""
+		conf := strings.NewReader(`
+			http {
+				include      conf/mime.types;
+				log_format   minimal  '$remote_addr [$time_local] "$request"';
+				log_format   main     '$remote_addr - $remote_user [$time_local] '
+									'"$request" $status '
+									'"$http_referer" "$http_user_agent"';
+				log_format   download '$remote_addr - $remote_user [$time_local] '
+									'"$request" $status $bytes_sent '
+									'"$http_referer" "$http_user_agent" '
+									'"$http_range" "$sent_http_content_range"';
+			}
+		`)
+		parser, err := NewNginxParser(conf, "main")
+		So(err, ShouldBeNil)
+		So(parser.format, ShouldEqual, expected)
+	})
 }
