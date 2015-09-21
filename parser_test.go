@@ -34,6 +34,12 @@ func TestParser(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(entry, ShouldResemble, expected)
 		})
+
+		Convey("Parse invalid string", func() {
+			line := `GET /api/foo/bar HTTP/1.1`
+			_, err := parser.ParseString(line)
+			So(err, ShouldNotBeNil)
+		})
 	})
 }
 
@@ -50,12 +56,6 @@ func (suite *ParserTestSuite) SetupTest() {
 
 func TestParserTestSuite(t *testing.T) {
 	suite.Run(t, new(ParserTestSuite))
-}
-
-func (suite *ParserTestSuite) TestParseInvalidString() {
-	line := `GET /api/foo/bar HTTP/1.1`
-	_, err := suite.parser.ParseString(line)
-	assert.Error(suite.T(), err)
 }
 
 func (suite *ParserTestSuite) TestEmptyValue() {
