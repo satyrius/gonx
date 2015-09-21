@@ -13,8 +13,13 @@ func TestParser(t *testing.T) {
 		format := "$remote_addr [$time_local] \"$request\" $status"
 		parser := NewParser(format)
 
-		Convey("Enfure parser format is ok", func() {
+		Convey("Ensure parser format is ok", func() {
 			So(parser.format, ShouldEqual, format)
+		})
+
+		Convey("Test format to regexp translation", func() {
+			So(parser.regexp.String(), ShouldEqual,
+				`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<request>[^"]*)" (?P<status>[^ ]*)$`)
 		})
 	})
 }
@@ -32,12 +37,6 @@ func (suite *ParserTestSuite) SetupTest() {
 
 func TestParserTestSuite(t *testing.T) {
 	suite.Run(t, new(ParserTestSuite))
-}
-
-func (suite *ParserTestSuite) TestRegexp() {
-	assert.Equal(suite.T(),
-		suite.parser.regexp.String(),
-		`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<request>[^"]*)" (?P<status>[^ ]*)$`)
 }
 
 func (suite *ParserTestSuite) TestParseString() {
