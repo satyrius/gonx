@@ -35,6 +35,19 @@ func TestParser(t *testing.T) {
 			So(entry, ShouldResemble, expected)
 		})
 
+		Convey("Handle empty values", func() {
+			line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "" 200`
+			expected := NewEntry(Fields{
+				"remote_addr": "89.234.89.123",
+				"time_local":  "08/Nov/2013:13:39:18 +0000",
+				"request":     "",
+				"status":      "200",
+			})
+			entry, err := parser.ParseString(line)
+			So(err, ShouldBeNil)
+			So(entry, ShouldResemble, expected)
+		})
+
 		Convey("Parse invalid string", func() {
 			line := `GET /api/foo/bar HTTP/1.1`
 			_, err := parser.ParseString(line)
@@ -56,19 +69,6 @@ func (suite *ParserTestSuite) SetupTest() {
 
 func TestParserTestSuite(t *testing.T) {
 	suite.Run(t, new(ParserTestSuite))
-}
-
-func (suite *ParserTestSuite) TestEmptyValue() {
-	line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "" 200`
-	expected := NewEntry(Fields{
-		"remote_addr": "89.234.89.123",
-		"time_local":  "08/Nov/2013:13:39:18 +0000",
-		"request":     "",
-		"status":      "200",
-	})
-	entry, err := suite.parser.ParseString(line)
-	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), entry, expected)
 }
 
 func TestNginxParser(t *testing.T) {
