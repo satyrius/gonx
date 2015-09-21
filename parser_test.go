@@ -21,6 +21,19 @@ func TestParser(t *testing.T) {
 			So(parser.regexp.String(), ShouldEqual,
 				`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<request>[^"]*)" (?P<status>[^ ]*)$`)
 		})
+
+		Convey("ParseString", func() {
+			line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1" 200`
+			expected := NewEntry(Fields{
+				"remote_addr": "89.234.89.123",
+				"time_local":  "08/Nov/2013:13:39:18 +0000",
+				"request":     "GET /api/foo/bar HTTP/1.1",
+				"status":      "200",
+			})
+			entry, err := parser.ParseString(line)
+			So(err, ShouldBeNil)
+			So(entry, ShouldResemble, expected)
+		})
 	})
 }
 
@@ -37,19 +50,6 @@ func (suite *ParserTestSuite) SetupTest() {
 
 func TestParserTestSuite(t *testing.T) {
 	suite.Run(t, new(ParserTestSuite))
-}
-
-func (suite *ParserTestSuite) TestParseString() {
-	line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1" 200`
-	expected := NewEntry(Fields{
-		"remote_addr": "89.234.89.123",
-		"time_local":  "08/Nov/2013:13:39:18 +0000",
-		"request":     "GET /api/foo/bar HTTP/1.1",
-		"status":      "200",
-	})
-	entry, err := suite.parser.ParseString(line)
-	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), entry, expected)
 }
 
 func (suite *ParserTestSuite) TestParseInvalidString() {
