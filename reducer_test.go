@@ -27,24 +27,6 @@ func TestReducer(t *testing.T) {
 			So(result, ShouldEqual, entry)
 		})
 
-		Convey("Count reducer", func() {
-			reducer := new(Count)
-
-			// Prepare import channel
-			input <- NewEmptyEntry()
-			input <- NewEmptyEntry()
-			close(input)
-
-			output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
-			reducer.Reduce(input, output)
-
-			result, ok := <-output
-			So(ok, ShouldBeTrue)
-			count, err := result.Field("count")
-			So(err, ShouldBeNil)
-			So(count, ShouldEqual, "2")
-		})
-
 		Convey("With filled input channel", func() {
 			// Prepare import channel
 			input <- NewEntry(Fields{
@@ -61,10 +43,21 @@ func TestReducer(t *testing.T) {
 			})
 			close(input)
 
+			output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
+
+			Convey("Count reducer", func() {
+				reducer := new(Count)
+				reducer.Reduce(input, output)
+
+				result, ok := <-output
+				So(ok, ShouldBeTrue)
+				count, err := result.Field("count")
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, "2")
+			})
+
 			Convey("Sum reducer", func() {
 				reducer := &Sum{[]string{"foo", "bar"}}
-
-				output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
 				reducer.Reduce(input, output)
 
 				result, ok := <-output
