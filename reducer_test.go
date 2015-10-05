@@ -26,27 +26,26 @@ func TestReducer(t *testing.T) {
 			So(ok, ShouldBeTrue)
 			So(result, ShouldEqual, entry)
 		})
+
+		Convey("Count reducer", func() {
+			reducer := new(Count)
+
+			// Prepare import channel
+			input := make(chan *Entry, 2)
+			input <- NewEmptyEntry()
+			input <- NewEmptyEntry()
+			close(input)
+
+			output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
+			reducer.Reduce(input, output)
+
+			result, ok := <-output
+			So(ok, ShouldBeTrue)
+			count, err := result.Field("count")
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, "2")
+		})
 	})
-}
-
-func TestCountReducer(t *testing.T) {
-	reducer := new(Count)
-	assert.Implements(t, (*Reducer)(nil), reducer)
-
-	// Prepare import channel
-	input := make(chan *Entry, 2)
-	input <- NewEmptyEntry()
-	input <- NewEmptyEntry()
-	close(input)
-
-	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
-	reducer.Reduce(input, output)
-
-	result, ok := <-output
-	assert.True(t, ok)
-	count, err := result.Field("count")
-	assert.NoError(t, err)
-	assert.Equal(t, count, "2")
 }
 
 func TestSumReducer(t *testing.T) {
