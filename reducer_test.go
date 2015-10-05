@@ -8,12 +8,12 @@ import (
 
 func TestReducer(t *testing.T) {
 	Convey("Test process input channel with reducers", t, func() {
+		input := make(chan *Entry, 10)
 
 		Convey("ReadAll reducer", func() {
 			reducer := new(ReadAll)
 
 			// Prepare import channel
-			input := make(chan *Entry, 1)
 			entry := NewEmptyEntry()
 			input <- entry
 			close(input)
@@ -31,7 +31,6 @@ func TestReducer(t *testing.T) {
 			reducer := new(Count)
 
 			// Prepare import channel
-			input := make(chan *Entry, 2)
 			input <- NewEmptyEntry()
 			input <- NewEmptyEntry()
 			close(input)
@@ -45,41 +44,42 @@ func TestReducer(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, "2")
 		})
-	})
-}
 
-func TestSumReducer(t *testing.T) {
-	reducer := &Sum{[]string{"foo", "bar"}}
-	assert.Implements(t, (*Reducer)(nil), reducer)
+		Convey("With filled input channel", func() {
+			// Prepare import channel
+			input <- NewEntry(Fields{
+				"uri": "/asd/fgh",
+				"foo": "123",
+				"bar": "234",
+				"baz": "345",
+			})
+			input <- NewEntry(Fields{
+				"uri": "/zxc/vbn",
+				"foo": "456",
+				"bar": "567",
+				"baz": "678",
+			})
+			close(input)
 
-	// Prepare import channel
-	input := make(chan *Entry, 2)
-	input <- NewEntry(Fields{
-		"uri": "/asd/fgh",
-		"foo": "123",
-		"bar": "234",
-		"baz": "345",
-	})
-	input <- NewEntry(Fields{
-		"uri": "/zxc/vbn",
-		"foo": "456",
-		"bar": "567",
-		"baz": "678",
-	})
-	close(input)
-	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
-	reducer.Reduce(input, output)
+			Convey("Sum reducer", func() {
+				reducer := &Sum{[]string{"foo", "bar"}}
 
-	result, ok := <-output
-	assert.True(t, ok)
-	value, err := result.FloatField("foo")
-	assert.NoError(t, err)
-	assert.Equal(t, value, 123.0+456)
-	value, err = result.FloatField("bar")
-	assert.NoError(t, err)
-	assert.Equal(t, value, 234.0+567.0)
-	_, err = result.Field("buz")
-	assert.Error(t, err)
+				output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
+				reducer.Reduce(input, output)
+
+				result, ok := <-output
+				So(ok, ShouldBeTrue)
+				value, err := result.FloatField("foo")
+				So(err, ShouldBeNil)
+				So(value, ShouldEqual, 123.0+456)
+				value, err = result.FloatField("bar")
+				So(err, ShouldBeNil)
+				So(value, ShouldEqual, 234.0+567)
+				_, err = result.Field("buz")
+				So(err, ShouldNotBeNil)
+			})
+		})
+	})
 }
 
 func TestAvgReducer(t *testing.T) {
