@@ -71,42 +71,24 @@ func TestReducer(t *testing.T) {
 				_, err = result.Field("buz")
 				So(err, ShouldNotBeNil)
 			})
+
+			Convey("Avg reducer", func() {
+				reducer := &Avg{[]string{"foo", "bar"}}
+				reducer.Reduce(input, output)
+
+				result, ok := <-output
+				So(ok, ShouldBeTrue)
+				value, err := result.FloatField("foo")
+				So(err, ShouldBeNil)
+				So(value, ShouldEqual, (123.0+456.0)/2.0)
+				value, err = result.FloatField("bar")
+				So(err, ShouldBeNil)
+				So(value, ShouldEqual, (234.0+567.0)/2.0)
+				_, err = result.Field("buz")
+				So(err, ShouldNotBeNil)
+			})
 		})
 	})
-}
-
-func TestAvgReducer(t *testing.T) {
-	reducer := &Avg{[]string{"foo", "bar"}}
-	assert.Implements(t, (*Reducer)(nil), reducer)
-
-	// Prepare import channel
-	input := make(chan *Entry, 2)
-	input <- NewEntry(Fields{
-		"uri": "/asd/fgh",
-		"foo": "123",
-		"bar": "234",
-		"baz": "345",
-	})
-	input <- NewEntry(Fields{
-		"uri": "/zxc/vbn",
-		"foo": "456",
-		"bar": "567",
-		"baz": "678",
-	})
-	close(input)
-	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
-	reducer.Reduce(input, output)
-
-	result, ok := <-output
-	assert.True(t, ok)
-	value, err := result.FloatField("foo")
-	assert.NoError(t, err)
-	assert.Equal(t, value, (123.0+456)/2.0)
-	value, err = result.FloatField("bar")
-	assert.NoError(t, err)
-	assert.Equal(t, value, (234.0+567.0)/2.0)
-	_, err = result.Field("buz")
-	assert.Error(t, err)
 }
 
 func TestChainReducer(t *testing.T) {
