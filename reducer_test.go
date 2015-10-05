@@ -1,27 +1,32 @@
 package gonx
 
 import (
+	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestReadAllReducer(t *testing.T) {
-	reducer := new(ReadAll)
-	assert.Implements(t, (*Reducer)(nil), reducer)
+func TestReducer(t *testing.T) {
+	Convey("Test process input channel with reducers", t, func() {
 
-	// Prepare import channel
-	input := make(chan *Entry, 1)
-	entry := NewEmptyEntry()
-	input <- entry
-	close(input)
+		Convey("ReadAll reducer", func() {
+			reducer := new(ReadAll)
 
-	output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
-	reducer.Reduce(input, output)
+			// Prepare import channel
+			input := make(chan *Entry, 1)
+			entry := NewEmptyEntry()
+			input <- entry
+			close(input)
 
-	// ReadAll reducer writes input channel to the output
-	result, ok := <-output
-	assert.True(t, ok)
-	assert.Equal(t, result, entry)
+			output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
+			reducer.Reduce(input, output)
+
+			// ReadAll reducer writes input channel to the output
+			result, ok := <-output
+			So(ok, ShouldBeTrue)
+			So(result, ShouldEqual, entry)
+		})
+	})
 }
 
 func TestCountReducer(t *testing.T) {
