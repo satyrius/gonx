@@ -30,18 +30,28 @@ func TestReducer(t *testing.T) {
 		Convey("With filled input channel", func() {
 			// Prepare import channel
 			input <- NewEntry(Fields{
-				"uri": "/asd/fgh",
-				"foo": "123",
-				"bar": "234",
-				"baz": "345",
+				"uri":  "/asd/fgh",
+				"host": "alpha.example.com",
+				"foo":  "1",
+				"bar":  "2",
+				"baz":  "3",
 			})
 			input <- NewEntry(Fields{
-				"uri": "/zxc/vbn",
-				"foo": "456",
-				"bar": "567",
-				"baz": "678",
+				"uri":  "/zxc/vbn",
+				"host": "beta.example.com",
+				"foo":  "4",
+				"bar":  "5",
+				"baz":  "6",
+			})
+			input <- NewEntry(Fields{
+				"uri":  "/ijk/lmn",
+				"host": "beta.example.com",
+				"foo":  "7",
+				"bar":  "8",
+				"baz":  "9",
 			})
 			close(input)
+			total := float64(len(input))
 
 			output := make(chan *Entry, 1) // Make it buffered to avoid deadlock
 
@@ -51,9 +61,9 @@ func TestReducer(t *testing.T) {
 
 				result, ok := <-output
 				So(ok, ShouldBeTrue)
-				count, err := result.Field("count")
+				count, err := result.FloatField("count")
 				So(err, ShouldBeNil)
-				So(count, ShouldEqual, "2")
+				So(count, ShouldEqual, total)
 			})
 
 			Convey("Sum reducer", func() {
@@ -65,11 +75,11 @@ func TestReducer(t *testing.T) {
 
 				value, err := result.FloatField("foo")
 				So(err, ShouldBeNil)
-				So(value, ShouldEqual, 123.0+456)
+				So(value, ShouldEqual, 1+4+7)
 
 				value, err = result.FloatField("bar")
 				So(err, ShouldBeNil)
-				So(value, ShouldEqual, 234.0+567)
+				So(value, ShouldEqual, 2+5+8)
 
 				_, err = result.Field("buz")
 				So(err, ShouldNotBeNil)
@@ -84,11 +94,11 @@ func TestReducer(t *testing.T) {
 
 				value, err := result.FloatField("foo")
 				So(err, ShouldBeNil)
-				So(value, ShouldEqual, (123.0+456.0)/2.0)
+				So(value, ShouldEqual, (1.0+4+7)/total)
 
 				value, err = result.FloatField("bar")
 				So(err, ShouldBeNil)
-				So(value, ShouldEqual, (234.0+567.0)/2.0)
+				So(value, ShouldEqual, (2.0+5+8)/total)
 
 				_, err = result.Field("buz")
 				So(err, ShouldNotBeNil)
@@ -103,15 +113,15 @@ func TestReducer(t *testing.T) {
 
 				value, err := result.FloatField("foo")
 				So(err, ShouldBeNil)
-				So(value, ShouldEqual, (123.0+456.0)/2.0)
+				So(value, ShouldEqual, (1.0+4+7)/total)
 
 				value, err = result.FloatField("bar")
 				So(err, ShouldBeNil)
-				So(value, ShouldEqual, (234.0+567.0)/2.0)
+				So(value, ShouldEqual, (2.0+5+8)/total)
 
-				count, err := result.Field("count")
+				count, err := result.FloatField("count")
 				So(err, ShouldBeNil)
-				So(count, ShouldEqual, "2")
+				So(count, ShouldEqual, total)
 
 				_, err = result.Field("buz")
 				So(err, ShouldNotBeNil)
