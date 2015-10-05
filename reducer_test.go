@@ -93,11 +93,11 @@ func TestReducer(t *testing.T) {
 
 				value, err := result.FloatField("foo")
 				So(err, ShouldBeNil)
-				So(value, ShouldEqual, (1.0+4+7)/total)
+				So(value, ShouldEqual, (1+4+7)/total)
 
 				value, err = result.FloatField("bar")
 				So(err, ShouldBeNil)
-				So(value, ShouldEqual, (2.0+5+8)/total)
+				So(value, ShouldEqual, (2+5+8)/total)
 
 				_, err = result.Field("buz")
 				So(err, ShouldNotBeNil)
@@ -112,11 +112,11 @@ func TestReducer(t *testing.T) {
 
 				value, err := result.FloatField("foo")
 				So(err, ShouldBeNil)
-				So(value, ShouldEqual, (1.0+4+7)/total)
+				So(value, ShouldEqual, (1+4+7)/total)
 
 				value, err = result.FloatField("bar")
 				So(err, ShouldBeNil)
-				So(value, ShouldEqual, (2.0+5+8)/total)
+				So(value, ShouldEqual, (2+5+8)/total)
 
 				count, err := result.FloatField("count")
 				So(err, ShouldBeNil)
