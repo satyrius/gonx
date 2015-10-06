@@ -5,7 +5,6 @@ bench:
 	go test -bench .
 
 deps:
-	go get github.com/stretchr/testify
 	go get github.com/smartystreets/goconvey
 
 dev-deps:
