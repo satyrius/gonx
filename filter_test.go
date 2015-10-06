@@ -1,29 +1,35 @@
 package gonx
 
 import (
+	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
-func TestDatetimeFilter(t *testing.T) {
-	filter := &Datetime{
-		Field:  "timestamp",
-		Format: time.RFC3339,
-		Start:  time.Date(2015, time.February, 2, 2, 2, 2, 0, time.UTC),
-		End:    time.Date(2015, time.May, 5, 5, 5, 5, 0, time.UTC),
-	}
-	assert.Implements(t, (*Filter)(nil), filter)
+func TestFilter(t *testing.T) {
+	Convey("Test filter input channel", t, func() {
+		Convey("Datetime filter", func() {
+			filter := &Datetime{
+				Field:  "timestamp",
+				Format: time.RFC3339,
+				Start:  time.Date(2015, time.February, 2, 2, 2, 2, 0, time.UTC),
+				End:    time.Date(2015, time.May, 5, 5, 5, 5, 0, time.UTC),
+			}
 
-	entry := NewEntry(Fields{
-		"timestamp": "2015-01-01T01:01:01Z",
-	})
-	assert.Nil(t, filter.Filter(entry))
+			// entry is out of datetime range
+			entry := NewEntry(Fields{
+				"timestamp": "2015-01-01T01:01:01Z",
+			})
+			So(filter.Filter(entry), ShouldBeNil)
 
-	entry = NewEntry(Fields{
-		"timestamp": "2015-02-02T02:02:02Z",
+			// entry's timestamp meets filter condition
+			entry = NewEntry(Fields{
+				"timestamp": "2015-02-02T02:02:02Z",
+			})
+			So(filter.Filter(entry), ShouldEqual, entry)
+		})
 	})
-	assert.Equal(t, filter.Filter(entry), entry)
 }
 
 func TestDatetimeFilterStart(t *testing.T) {
