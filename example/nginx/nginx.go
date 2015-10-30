@@ -23,16 +23,18 @@ func main() {
 	flag.Parse()
 
 	// Read given file or from STDIN
-	var file io.Reader
+	var logReader io.Reader
+	var err error
 	if logFile == "dummy" {
-		file = strings.NewReader(`89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`)
+		logReader = strings.NewReader(`89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`)
 	} else if logFile == "-" {
-		file = os.Stdin
+		logReader = os.Stdin
 	} else {
 		file, err := os.Open(logFile)
 		if err != nil {
 			panic(err)
 		}
+		logReader = file
 		defer file.Close()
 	}
 
@@ -45,15 +47,16 @@ func main() {
             }
         `)
 	} else {
-		nginxConfig, err := os.Open(conf)
+		nginxConfigFile, err := os.Open(conf)
 		if err != nil {
 			panic(err)
 		}
-		defer nginxConfig.Close()
+		nginxConfig = nginxConfigFile
+		defer nginxConfigFile.Close()
 	}
 
 	// Read from STDIN and use log_format to parse log records
-	reader, err := gonx.NewNginxReader(file, nginxConfig, format)
+	reader, err := gonx.NewNginxReader(logReader, nginxConfig, format)
 	if err != nil {
 		panic(err)
 	}
