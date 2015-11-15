@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+// StringParser is the interface that wraps the ParseString method.
+type StringParser interface {
+	ParseString(line string) (entry *Entry, err error)
+}
+
 // Log record parser. Use specific constructors to initialize it.
 type Parser struct {
 	format string

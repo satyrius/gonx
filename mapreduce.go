@@ -15,7 +15,7 @@ func handleError(err error) {
 // when result will be readed from reducer's output channel, but the mapper
 // works and fills input Entries channel until all lines will be read from
 // the fiven file.
-func MapReduce(file io.Reader, parser *Parser, reducer Reducer) chan *Entry {
+func MapReduce(file io.Reader, parser StringParser, reducer Reducer) chan *Entry {
 	// Input file lines. This channel is unbuffered to publish
 	// next line to handle only when previous is taken by mapper.
 	var lines = make(chan string)
