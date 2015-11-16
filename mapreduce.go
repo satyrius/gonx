@@ -2,7 +2,6 @@ package gonx
 
 import (
 	"bufio"
-	"bytes"
 	"io"
 	"sync"
 )
@@ -94,14 +93,13 @@ func readLine(reader *bufio.Reader) (string, error) {
 	var (
 		isPrefix bool  = true
 		err      error = nil
-		line     []byte
-		buffer   bytes.Buffer
+		line, ln []byte
 	)
 	for isPrefix && err == nil {
 		line, isPrefix, err = reader.ReadLine()
 		if err == nil {
-			_, err = buffer.Write(line)
+			ln = append(ln, line...)
 		}
 	}
-	return buffer.String(), err
+	return string(ln), err
 }
