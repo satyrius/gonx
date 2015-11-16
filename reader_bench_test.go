@@ -12,12 +12,13 @@ func BenchmarkScannerReader(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
+	for i := 0; i < b.N; i++ {
+		scanner := bufio.NewScanner(file)
+		scanner.Scan()
 		_ = scanner.Text()
-	}
-	if err := scanner.Err(); err != nil {
-		b.Fatal(err)
+		if err := scanner.Err(); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -26,12 +27,11 @@ func BenchmarkReaderReader(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	reader := bufio.NewReader(file)
-	_, err = readLine(reader)
-	for err == nil {
+	for i := 0; i < b.N; i++ {
+		reader := bufio.NewReader(file)
 		_, err = readLine(reader)
-	}
-	if err != nil && err != io.EOF {
-		b.Fatal(err)
+		if err != nil && err != io.EOF {
+			b.Fatal(err)
+		}
 	}
 }
