@@ -2,6 +2,7 @@ package gonx
 
 import (
 	"bufio"
+	"bytes"
 	"io"
 	"sync"
 )
@@ -90,16 +91,20 @@ func MapReduce(file io.Reader, parser *Parser, reducer Reducer) chan *Entry {
 }
 
 func readLine(reader *bufio.Reader) (string, error) {
-	var (
-		isPrefix bool  = true
-		err      error = nil
-		line, ln []byte
-	)
+	line, isPrefix, err := reader.ReadLine()
+	if err != nil {
+		return "", err
+	}
+	if !isPrefix {
+		return string(line), nil
+	}
+	var buffer bytes.Buffer
+	_, err = buffer.Write(line)
 	for isPrefix && err == nil {
 		line, isPrefix, err = reader.ReadLine()
 		if err == nil {
-			ln = append(ln, line...)
+			_, err = buffer.Write(line)
 		}
 	}
-	return string(ln), err
+	return buffer.String(), err
 }
