@@ -3,17 +3,21 @@ package gonx
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
 )
 
 func BenchmarkScannerReader(b *testing.B) {
-	file := strings.NewReader(`89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`)
+	s := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		file := strings.NewReader(s)
 		scanner := bufio.NewScanner(file)
 		scanner.Scan()
-		_ = scanner.Text()
+		ln := scanner.Text()
+		fmt.Sprintf("%s", ln)
 		if err := scanner.Err(); err != nil {
 			b.Fatal(err)
 		}
@@ -21,10 +25,13 @@ func BenchmarkScannerReader(b *testing.B) {
 }
 
 func BenchmarkReaderReaderAppend(b *testing.B) {
-	file := strings.NewReader(`89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`)
+	s := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		file := strings.NewReader(s)
 		reader := bufio.NewReader(file)
-		_, err := readLineAppend(reader)
+		ln, err := readLineAppend(reader)
+		fmt.Sprintf("%s", ln)
 		if err != nil && err != io.EOF {
 			b.Fatal(err)
 		}
@@ -32,10 +39,43 @@ func BenchmarkReaderReaderAppend(b *testing.B) {
 }
 
 func BenchmarkReaderReaderBuffer(b *testing.B) {
-	file := strings.NewReader(`89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`)
+	s := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1"`
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		file := strings.NewReader(s)
 		reader := bufio.NewReader(file)
-		_, err := readLineBuffer(reader)
+		ln, err := readLineBuffer(reader)
+		fmt.Sprintf("%s", ln)
+		if err != nil && err != io.EOF {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkLongReaderReaderAppend(b *testing.B) {
+	longStr := RandString(10 * 64 * 1024)
+	s := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET ` + longStr + ` HTTP/1.1"`
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		file := strings.NewReader(s)
+		reader := bufio.NewReader(file)
+		ln, err := readLineAppend(reader)
+		fmt.Sprintf("%s", ln)
+		if err != nil && err != io.EOF {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkLongReaderReaderBuffer(b *testing.B) {
+	longStr := RandString(10 * 64 * 1024)
+	s := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET ` + longStr + ` HTTP/1.1"`
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		file := strings.NewReader(s)
+		reader := bufio.NewReader(file)
+		ln, err := readLineBuffer(reader)
+		fmt.Sprintf("%s", ln)
 		if err != nil && err != io.EOF {
 			b.Fatal(err)
 		}
@@ -43,27 +83,33 @@ func BenchmarkReaderReaderBuffer(b *testing.B) {
 }
 
 func readLineAppend(reader *bufio.Reader) (string, error) {
-	var (
-		isPrefix bool  = true
-		err      error = nil
-		line, ln []byte
-	)
+	line, isPrefix, err := reader.ReadLine()
+	if err != nil {
+		return "", err
+	}
+	if !isPrefix {
+		return string(line), nil
+	}
+	var ln []byte
 	for isPrefix && err == nil {
-		line, isPrefix, err = reader.ReadLine()
+		ln, isPrefix, err = reader.ReadLine()
 		if err == nil {
-			ln = append(ln, line...)
+			line = append(line, ln...)
 		}
 	}
-	return string(ln), err
+	return string(line), err
 }
 
 func readLineBuffer(reader *bufio.Reader) (string, error) {
-	var (
-		isPrefix bool  = true
-		err      error = nil
-		line     []byte
-		buffer   bytes.Buffer
-	)
+	line, isPrefix, err := reader.ReadLine()
+	if err != nil {
+		return "", err
+	}
+	if !isPrefix {
+		return string(line), nil
+	}
+	var buffer bytes.Buffer
+	_, err = buffer.Write(line)
 	for isPrefix && err == nil {
 		line, isPrefix, err = reader.ReadLine()
 		if err == nil {
