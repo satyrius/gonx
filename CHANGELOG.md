@@ -1,6 +1,6 @@
 # Release History
 
-## v1.3.0 (dev)
+## v1.3.0 (2015-12-19)
 
 ### Major features
 
@@ -28,7 +28,7 @@
 
 ### Bugfixes
 
-- Parsing last value without quotes was fixed, #9 
+- Parsing last value without quotes was fixed, #9
 - Tested for Go v1.3
 
 ## v1.2.1 (2014-06-21)
