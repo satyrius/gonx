@@ -1,5 +1,29 @@
 # Release History
 
+## v1.3.0 (dev)
+
+### Major features
+
+- Introduce `Filter` interface #19. It acts similar to `Reducer`, but it is about limiting chain entries.
+  - Has `Filter(*Entry) *Entry` method to check is entry meets filter condition
+  - Implements `Reducer` interface too, to be used in chains
+- `Datetime` filter #19. Its based on this PR #11 by @pshevtsov
+- Introduce `StringParser` #24 by @pshevtsov
+
+
+### Minor features
+
+- Run test for `go` version up to `1.5`
+- Linting fixes #13, #14 (thanks to @pshevtsov)
+- More examples, espetially for reducers #17
+- Use `goconvey` for tests
+
+### Bugfixes
+
+- Fixed `Reader` examples #21
+- Long lines reading #23 by @pshevtsov
+- Fix nginx conf parsing, deal with commented lines #25 by @jack1582
+
 ## v1.2.2 (2014-11-05)
 
 ### Bugfixes
