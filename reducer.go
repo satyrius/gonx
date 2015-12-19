@@ -104,9 +104,7 @@ type Chain struct {
 }
 
 func NewChain(reducers ...Reducer) *Chain {
-	chain := &Chain{
-		reducers: reducers,
-	}
+	chain := new(Chain)
 	for _, r := range reducers {
 		if f, ok := interface{}(r).(Filter); ok {
 			chain.filters = append(chain.filters, f)

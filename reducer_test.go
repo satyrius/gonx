@@ -105,6 +105,7 @@ func TestReducer(t *testing.T) {
 
 			Convey("Chain reducer", func() {
 				reducer := NewChain(&Avg{[]string{"foo", "bar"}}, &Count{})
+				So(len(reducer.reducers), ShouldEqual, 2)
 				reducer.Reduce(input, output)
 
 				result, ok := <-output
@@ -134,6 +135,7 @@ func TestReducer(t *testing.T) {
 					&Sum{[]string{"foo", "bar"}},
 					new(Count),
 				)
+				So(len(reducer.reducers), ShouldEqual, 2)
 				reducer.Reduce(input, output)
 
 				// Collect result entries from output channel to the map, because reading
