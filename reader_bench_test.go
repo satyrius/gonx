@@ -17,7 +17,6 @@ func BenchmarkScannerReader(b *testing.B) {
 		scanner := bufio.NewScanner(file)
 		scanner.Scan()
 		ln := scanner.Text()
-		fmt.Sprintf("%s", ln)
 		if err := scanner.Err(); err != nil {
 			b.Fatal(err)
 		}
@@ -31,7 +30,6 @@ func BenchmarkReaderReaderAppend(b *testing.B) {
 		file := strings.NewReader(s)
 		reader := bufio.NewReader(file)
 		ln, err := readLineAppend(reader)
-		fmt.Sprintf("%s", ln)
 		if err != nil && err != io.EOF {
 			b.Fatal(err)
 		}
@@ -45,7 +43,6 @@ func BenchmarkReaderReaderBuffer(b *testing.B) {
 		file := strings.NewReader(s)
 		reader := bufio.NewReader(file)
 		ln, err := readLineBuffer(reader)
-		fmt.Sprintf("%s", ln)
 		if err != nil && err != io.EOF {
 			b.Fatal(err)
 		}
@@ -60,7 +57,6 @@ func BenchmarkLongReaderReaderAppend(b *testing.B) {
 		file := strings.NewReader(s)
 		reader := bufio.NewReader(file)
 		ln, err := readLineAppend(reader)
-		fmt.Sprintf("%s", ln)
 		if err != nil && err != io.EOF {
 			b.Fatal(err)
 		}
@@ -75,7 +71,6 @@ func BenchmarkLongReaderReaderBuffer(b *testing.B) {
 		file := strings.NewReader(s)
 		reader := bufio.NewReader(file)
 		ln, err := readLineBuffer(reader)
-		fmt.Sprintf("%s", ln)
 		if err != nil && err != io.EOF {
 			b.Fatal(err)
 		}
