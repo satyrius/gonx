@@ -35,8 +35,8 @@ func (entry *Entry) Field(name string) (value string, err error) {
 	return
 }
 
-// Return entry field value as float64. Rutuen nil if field does not exists
-// and convertion error if cannot cast a type.
+// Return entry field value as float64. Return nil if field does not exist
+// and conversion error if cannot cast a type.
 func (entry *Entry) FloatField(name string) (value float64, err error) {
 	tmp, err := entry.Field(name)
 	if err == nil {
