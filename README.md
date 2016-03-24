@@ -1,4 +1,4 @@
-# gonx [![Build Status](https://travis-ci.org/satyrius/gonx.png)](https://travis-ci.org/satyrius/gonx)
+# gonx [![Build Status](https://travis-ci.org/satyrius/gonx.png)](https://travis-ci.org/satyrius/gonx) [![Go Report Card](https://goreportcard.com/badge/github.com/satyrius/gonx)](https://goreportcard.com/report/github.com/satyrius/gonx)
 
 `gonx` is Nginx access log reader library for `Go`. In fact you can use it for any format.
 
@@ -6,14 +6,14 @@
 
 The library provides `Reader` type and two constructors for it.
 
-Common constructor `NewReader` gets opened file (any `io.Reader` in fact) and log format of type `string` as argumets. 
+Common constructor `NewReader` gets opened file (any `io.Reader` in fact) and log format of type `string` as argumets.
 [Format](#format) is in form os nginx `log_format` string.
 
 ```go
 reader := gonx.NewReader(file, format)
 ```
 
-`NewNginxReader` provides more magic. It gets log file `io.Reader`, nginx config file `io.Reader` 
+`NewNginxReader` provides more magic. It gets log file `io.Reader`, nginx config file `io.Reader`
 and `log_format` name `string` as a third. The actual format for `Parser` will be extracted from
 given nginx config.
 
@@ -43,7 +43,7 @@ I have a few benchmarks for parsing `string` log record into `Entry` using `gonx
 
 	BenchmarkParseSimpleLogRecord      100000            19457 ns/op
 	BenchmarkParseLogRecord             20000            84425 ns/op
-	
+
 And here is some real wold stats. I got ~300Mb log file with ~700K records and process with [simple scripts](https://github.com/satyrius/gonx/tree/master/benchmarks).
 
 * Reading whole file line by line with `bufio.Scanner` without any other processing takes a *one second*.
@@ -52,13 +52,13 @@ And here is some real wold stats. I got ~300Mb log file with ~700K records and p
 
 ## Format
 
-As I said above this library is primary for nginx access log parsing, but it can be configured to parse any 
-other format. `NewReader` accepts `format` argument, it will be transformed to regular expression and used 
+As I said above this library is primary for nginx access log parsing, but it can be configured to parse any
+other format. `NewReader` accepts `format` argument, it will be transformed to regular expression and used
 for log line by line parsing. Format is nginx-like, here is example
 
 	`$remote_addr [$time_local] "$request"`
 
-It should contain variables in form `$name`. The regular expression will be created using this string 
+It should contain variables in form `$name`. The regular expression will be created using this string
 format representation
 
 	`^(?P<remote_addr>[^ ]+) \[(?P<time_local>[^]]+)\] "(?P<request>[^"]+)"$`
@@ -68,7 +68,7 @@ the returned record map will contain `remote_addr`, `time_local` and `request` k
 
 ## Stability
 
-This library API and internal representation can be changed at any moment, but I guarantee that backward 
+This library API and internal representation can be changed at any moment, but I guarantee that backward
 capability will be supported for the following public interfaces.
 
 * `func NewReader(logFile io.Reader, format string) *Reader`
