@@ -3,7 +3,6 @@ package gonx
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -16,7 +15,7 @@ func BenchmarkScannerReader(b *testing.B) {
 		file := strings.NewReader(s)
 		scanner := bufio.NewScanner(file)
 		scanner.Scan()
-		ln := scanner.Text()
+		scanner.Text()
 		if err := scanner.Err(); err != nil {
 			b.Fatal(err)
 		}
@@ -29,7 +28,7 @@ func BenchmarkReaderReaderAppend(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		file := strings.NewReader(s)
 		reader := bufio.NewReader(file)
-		ln, err := readLineAppend(reader)
+		_, err := readLineAppend(reader)
 		if err != nil && err != io.EOF {
 			b.Fatal(err)
 		}
@@ -42,7 +41,7 @@ func BenchmarkReaderReaderBuffer(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		file := strings.NewReader(s)
 		reader := bufio.NewReader(file)
-		ln, err := readLineBuffer(reader)
+		_, err := readLineBuffer(reader)
 		if err != nil && err != io.EOF {
 			b.Fatal(err)
 		}
@@ -56,7 +55,7 @@ func BenchmarkLongReaderReaderAppend(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		file := strings.NewReader(s)
 		reader := bufio.NewReader(file)
-		ln, err := readLineAppend(reader)
+		_, err := readLineAppend(reader)
 		if err != nil && err != io.EOF {
 			b.Fatal(err)
 		}
@@ -70,7 +69,7 @@ func BenchmarkLongReaderReaderBuffer(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		file := strings.NewReader(s)
 		reader := bufio.NewReader(file)
-		ln, err := readLineBuffer(reader)
+		_, err := readLineBuffer(reader)
 		if err != nil && err != io.EOF {
 			b.Fatal(err)
 		}
