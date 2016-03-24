@@ -1,4 +1,4 @@
-# gonx [![Build Status](https://travis-ci.org/satyrius/gonx.png)](https://travis-ci.org/satyrius/gonx) [![Go Report Card](https://goreportcard.com/badge/github.com/satyrius/gonx)](https://goreportcard.com/report/github.com/satyrius/gonx)
+# gonx [![Build Status](https://travis-ci.org/satyrius/gonx.svg)](https://travis-ci.org/satyrius/gonx) [![Go Report Card](https://goreportcard.com/badge/github.com/satyrius/gonx)](https://goreportcard.com/report/github.com/satyrius/gonx)
 
 `gonx` is Nginx access log reader library for `Go`. In fact you can use it for any format.
 
