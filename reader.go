@@ -13,9 +13,14 @@ type Reader struct {
 
 // NewReader creates a reader for a custom log format.
 func NewReader(logFile io.Reader, format string) *Reader {
+	return NewParserReader(logFile, NewParser(format))
+}
+
+// NewParserReader creates a reader with the given parser
+func NewParserReader(logFile io.Reader, parser StringParser) *Reader {
 	return &Reader{
 		file:   logFile,
-		parser: NewParser(format),
+		parser: parser,
 	}
 }
 
