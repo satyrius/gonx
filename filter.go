@@ -11,7 +11,7 @@ type Filter interface {
 	Filter(*Entry) *Entry
 }
 
-// Implements Filter interface to filter Entries with timestamp fields within
+// Datetime implements the Filter interface to filter Entries with timestamp fields within
 // the specified datetime interval.
 type Datetime struct {
 	Field  string
@@ -20,7 +20,7 @@ type Datetime struct {
 	End    time.Time
 }
 
-// Check field value to be in desired datetime range.
+// Filter checks a field value to be in desired datetime range.
 func (i *Datetime) Filter(entry *Entry) (validEntry *Entry) {
 	val, err := entry.Field(i.Field)
 	if err != nil {
@@ -38,7 +38,7 @@ func (i *Datetime) Filter(entry *Entry) (validEntry *Entry) {
 	return
 }
 
-// Reducer interface too. Go through input and apply Filter.
+// Reduce implements the Reducer interface. Go through input and apply Filter.
 func (i *Datetime) Reduce(input chan *Entry, output chan *Entry) {
 	for entry := range input {
 		if valid := i.Filter(entry); valid != nil {

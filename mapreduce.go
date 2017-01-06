@@ -11,7 +11,7 @@ func handleError(err error) {
 	//fmt.Fprintln(os.Stderr, err)
 }
 
-// Iterate over given file and map each it's line into Entry record using
+// MapReduce iterates over given file and map each it's line into Entry record using
 // parser and apply reducer to the Entries channel. Execution terminates
 // when result will be readed from reducer's output channel, but the mapper
 // works and fills input Entries channel until all lines will be read from

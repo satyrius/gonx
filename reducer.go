@@ -11,12 +11,12 @@ type Reducer interface {
 	Reduce(input chan *Entry, output chan *Entry)
 }
 
-// Implements Reducer interface for simple input entries redirection to
+// ReadAll implements the Reducer interface for simple input entries redirected to
 // the output channel.
 type ReadAll struct {
 }
 
-// Redirect input Entries channel directly to the output without any
+// Reduce redirects input Entries channel directly to the output without any
 // modifications. It is useful when you want jast to read file fast
 // using asynchronous with mapper routines.
 func (r *ReadAll) Reduce(input chan *Entry, output chan *Entry) {
@@ -26,11 +26,11 @@ func (r *ReadAll) Reduce(input chan *Entry, output chan *Entry) {
 	close(output)
 }
 
-// Implements Reducer interface to count entries
+// Count implements the Reducer interface to count entries
 type Count struct {
 }
 
-// Simply count entrries and write a sum to the output channel
+// Reduce simply counts entries and write a sum to the output channel
 func (r *Count) Reduce(input chan *Entry, output chan *Entry) {
 	var count uint64
 	for {
@@ -46,12 +46,12 @@ func (r *Count) Reduce(input chan *Entry, output chan *Entry) {
 	close(output)
 }
 
-// Implements Reducer interface for summarize Entry values for the given fields
+// Sum implements the Reducer interface for summarize Entry values for the given fields
 type Sum struct {
 	Fields []string
 }
 
-// Summarize given Entry fields and return a map with result for each field.
+// Reduce summarizes given Entry fields and return a map with result for each field.
 func (r *Sum) Reduce(input chan *Entry, output chan *Entry) {
 	sum := make(map[string]float64)
 	for entry := range input {
@@ -70,12 +70,12 @@ func (r *Sum) Reduce(input chan *Entry, output chan *Entry) {
 	close(output)
 }
 
-// Implements Reducer interface for average entries values calculation
+// Avg implements the Reducer interface for average entries values calculation
 type Avg struct {
 	Fields []string
 }
 
-// Calculate average value for input channel Entries, using configured Fields
+// Reduce calculates the average value for input channel Entries, using configured Fields
 // of the struct. Write result to the output channel as map[string]float64
 func (r *Avg) Reduce(input chan *Entry, output chan *Entry) {
 	avg := make(map[string]float64)
@@ -97,12 +97,13 @@ func (r *Avg) Reduce(input chan *Entry, output chan *Entry) {
 	close(output)
 }
 
-// Implements Reducer interface for chaining other reducers
+// Chain implements the Reducer interface for chaining other reducers
 type Chain struct {
 	filters  []Filter
 	reducers []Reducer
 }
 
+// NewChain creates a new chain of Reducers
 func NewChain(reducers ...Reducer) *Chain {
 	chain := new(Chain)
 	for _, r := range reducers {
@@ -115,7 +116,7 @@ func NewChain(reducers ...Reducer) *Chain {
 	return chain
 }
 
-// Apply chain of reducers to the input channel of entries and merge results
+// Reduce applies a chain of reducers to the input channel of entries and merge results
 func (r *Chain) Reduce(input chan *Entry, output chan *Entry) {
 	// Make input and output channel for each reducer
 	subInput := make([]chan *Entry, len(r.reducers))
@@ -155,13 +156,14 @@ func (r *Chain) Reduce(input chan *Entry, output chan *Entry) {
 	close(output)
 }
 
-// Implements Reducer interface to apply other reducers and get data grouped by
+// GroupBy implements the Reducer interface to apply other reducers and get data grouped by
 // given fields.
 type GroupBy struct {
 	Fields   []string
 	reducers []Reducer
 }
 
+// NewGroupBy creates a new GroupBy Reducer
 func NewGroupBy(fields []string, reducers ...Reducer) *GroupBy {
 	return &GroupBy{
 		Fields:   fields,
@@ -169,7 +171,7 @@ func NewGroupBy(fields []string, reducers ...Reducer) *GroupBy {
 	}
 }
 
-// Apply related reducers and group data by Fields.
+// Reduce applies related reducers and group data by Fields.
 func (r *GroupBy) Reduce(input chan *Entry, output chan *Entry) {
 	subInput := make(map[string]chan *Entry)
 	subOutput := make(map[string]chan *Entry)
