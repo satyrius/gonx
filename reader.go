@@ -4,14 +4,14 @@ import (
 	"io"
 )
 
-// Log file reader. Use specific constructors to create it.
+// Reader is a log file reader. Use specific constructors to create it.
 type Reader struct {
 	file    io.Reader
-	parser  *Parser
+	parser  StringParser
 	entries chan *Entry
 }
 
-// Creates reader for custom log format.
+// NewReader creates a reader for a custom log format.
 func NewReader(logFile io.Reader, format string) *Reader {
 	return &Reader{
 		file:   logFile,
@@ -19,7 +19,7 @@ func NewReader(logFile io.Reader, format string) *Reader {
 	}
 }
 
-// Creates reader for nginx log format. Nginx config parser will be used
+// NewNginxReader creates a reader for the nginx log format. Nginx config parser will be used
 // to get particular format from the conf file.
 func NewNginxReader(logFile io.Reader, nginxConf io.Reader, formatName string) (reader *Reader, err error) {
 	parser, err := NewNginxParser(nginxConf, formatName)
@@ -33,7 +33,7 @@ func NewNginxReader(logFile io.Reader, nginxConf io.Reader, formatName string) (
 	return
 }
 
-// Get next parsed Entry from the log file. Return EOF if there is no Entries to read.
+// Read next parsed Entry from the log file. Return EOF if there are no Entries to read.
 func (r *Reader) Read() (entry *Entry, err error) {
 	if r.entries == nil {
 		r.entries = MapReduce(r.file, r.parser, new(ReadAll))

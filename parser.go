@@ -13,13 +13,13 @@ type StringParser interface {
 	ParseString(line string) (entry *Entry, err error)
 }
 
-// Log record parser. Use specific constructors to initialize it.
+// Parser is a log record parser. Use specific constructors to initialize it.
 type Parser struct {
 	format string
 	regexp *regexp.Regexp
 }
 
-// Returns a new Parser, use given log format to create its internal
+// NewParser returns a new Parser, use given log format to create its internal
 // strings parsing regexp.
 func NewParser(format string) *Parser {
 	re := regexp.MustCompile(`\\\$([a-z_]+)(\\?(.))`).ReplaceAllString(
@@ -27,8 +27,8 @@ func NewParser(format string) *Parser {
 	return &Parser{format, regexp.MustCompile(fmt.Sprintf("^%v$", strings.Trim(re, " ")))}
 }
 
-// Parse log file line using internal format regexp. If line do not match
-// given format an error will be returned.
+// ParseString parses a log file line using internal format regexp. If a line
+// does not match the given format an error will be returned.
 func (parser *Parser) ParseString(line string) (entry *Entry, err error) {
 	re := parser.regexp
 	fields := re.FindStringSubmatch(line)
@@ -48,8 +48,9 @@ func (parser *Parser) ParseString(line string) (entry *Entry, err error) {
 	return
 }
 
-// NewNginxParser parse nginx conf file to find log_format with given name and
-// returns parser for this format. It returns an error if cannot find the needle.
+// NewNginxParser parses the nginx conf file to find log_format with the given
+// name and returns a parser for this format. It returns an error if cannot find
+// the given log format.
 func NewNginxParser(conf io.Reader, name string) (parser *Parser, err error) {
 	scanner := bufio.NewScanner(conf)
 	re := regexp.MustCompile(fmt.Sprintf(`^\s*log_format\s+%v\s+(.+)\s*$`, name))
