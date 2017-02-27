@@ -24,7 +24,7 @@ type Parser struct {
 func NewParser(format string) *Parser {
 	re := regexp.MustCompile(`\\\$([a-z_]+)(\\?(.))`).ReplaceAllString(
 		regexp.QuoteMeta(format+" "), "(?P<$1>[^$3]*)$2")
-	return &Parser{format, regexp.MustCompile(fmt.Sprintf("^%v$", strings.Trim(re, " ")))}
+	return &Parser{format, regexp.MustCompile(fmt.Sprintf("^%v", strings.Trim(re, " ")))}
 }
 
 // ParseString parses a log file line using internal format regexp. If a line
