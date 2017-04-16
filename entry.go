@@ -92,3 +92,16 @@ func (entry *Entry) Partial(fields []string) *Entry {
 	}
 	return partial
 }
+
+// SumFields calculates the sum of the fields values.
+func (entry *Entry) SumFields(fields []string) float64 {
+	var sum float64
+	for _, field := range fields {
+		n, err := entry.FloatField(field)
+		if err != nil {
+			continue
+		}
+		sum += n
+	}
+	return sum
+}

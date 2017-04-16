@@ -120,3 +120,11 @@ func TestEntry(t *testing.T) {
 		})
 	})
 }
+
+func TestEntrySumFields(t *testing.T) {
+	entry := NewEntry(Fields{"foo": "123", "bar": "234", "baz": "not a number"})
+	val := entry.SumFields([]string{"foo", "bar"})
+	assert.Equal(t, val, 123.0+234)
+	val = entry.SumFields([]string{"bar", "baz"})
+	assert.Equal(t, val, 234.0)
+}
