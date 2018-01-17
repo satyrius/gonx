@@ -19,11 +19,29 @@ type Parser struct {
 	regexp *regexp.Regexp
 }
 
+func getSpecialNginxRegexes() map[string]string {
+	return map[string]string{
+		"http_x_forwarded_for": `[^ ]*(, [^ ]+)*`}
+}
+
 // NewParser returns a new Parser, use given log format to create its internal
 // strings parsing regexp.
 func NewParser(format string) *Parser {
-	re := regexp.MustCompile(`\\\$([a-z_]+)(\\?(.))`).ReplaceAllString(
-		regexp.QuoteMeta(format+" "), "(?P<$1>[^$3]*)$2")
+	formatRegex := regexp.MustCompile(`([^ ]*)\$([a-z_]+)([^ ]*)([ ]?)`)
+	specialNginxRegexes := getSpecialNginxRegexes()
+	fields := formatRegex.FindAllStringSubmatch(format+" ", -1)
+	re := formatRegex.ReplaceAllString(format+" ", "$2$4")
+	for _, field := range fields {
+		terminateChar := field[3]
+		if len([]rune(terminateChar)) == 0 {
+			terminateChar = field[4]
+		}
+		if specialRegex, found := specialNginxRegexes[field[2]]; found {
+			re = strings.Replace(re, field[2]+field[4], regexp.QuoteMeta(field[1])+"(?P<"+field[2]+">"+specialRegex+")"+regexp.QuoteMeta(field[3])+field[4], 1)
+		} else {
+			re = strings.Replace(re, field[2]+field[4], regexp.QuoteMeta(field[1])+"(?P<"+field[2]+">[^"+terminateChar+"]*)"+regexp.QuoteMeta(field[3]+field[4]), 1)
+		}
+	}
 	return &Parser{format, regexp.MustCompile(fmt.Sprintf("^%v", strings.Trim(re, " ")))}
 }
 
