@@ -21,7 +21,8 @@ type Parser struct {
 
 func getSpecialNginxRegexes() map[string]string {
 	return map[string]string{
-		"http_x_forwarded_for": `[^ ]*(, [^ ]+)*`}
+		"http_x_forwarded_for": `[^ ]*(, [^ ]+)*`,
+		"remote_user":          `[^"]*`}
 }
 
 // NewParser returns a new Parser, use given log format to create its internal
