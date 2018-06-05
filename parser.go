@@ -22,7 +22,7 @@ type Parser struct {
 // NewParser returns a new Parser, use given log format to create its internal
 // strings parsing regexp.
 func NewParser(format string) *Parser {
-	re := regexp.MustCompile(`\\\$([a-z_]+)(\\?(.))`).ReplaceAllString(
+	re := regexp.MustCompile(`\\\$([A-Za-z0-9_]+)(\\?(.))`).ReplaceAllString(
 		regexp.QuoteMeta(format+" "), "(?P<$1>[^$3]*)$2")
 	return &Parser{format, regexp.MustCompile(fmt.Sprintf("^%v", strings.Trim(re, " ")))}
 }
