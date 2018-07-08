@@ -10,6 +10,13 @@ func TestEntry(t *testing.T) {
 		Convey("Test get Entry fields", func() {
 			entry := NewEntry(Fields{"foo": "1", "bar": "not a number"})
 
+			Convey("Get all fields", func() {
+				// Get all fields
+				fields := entry.Fields()
+				So(fields, ShouldContainKey, "foo")
+				So(fields, ShouldContainKey, "bar")
+			})
+
 			Convey("Get raw string value", func() {
 				// Get existings field
 				val, err := entry.Field("foo")
