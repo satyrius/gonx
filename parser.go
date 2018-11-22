@@ -22,8 +22,23 @@ type Parser struct {
 // NewParser returns a new Parser, use given log format to create its internal
 // strings parsing regexp.
 func NewParser(format string) *Parser {
-	re := regexp.MustCompile(`\\\$([A-Za-z0-9_]+)(\\?(.))`).ReplaceAllString(
-		regexp.QuoteMeta(format+" "), "(?P<$1>[^$3]*)$2")
+	// First split up multiple concatenated fields with placeholder
+	placeholder := " _PLACEHOLDER___ "
+	preparedFormat := format
+	concatenatedRe := regexp.MustCompile(`[A-Za-z0-9_]\$[A-Za-z0-9_]`)
+	for concatenatedRe.MatchString(preparedFormat) {
+		preparedFormat = regexp.MustCompile(`([A-Za-z0-9_])\$([A-Za-z0-9_]+)(\\?([^$\\A-Za-z0-9_]))`).ReplaceAllString(
+			preparedFormat, fmt.Sprintf("${1}${3}%s$$${2}${3}", placeholder),
+		)
+	}
+
+	// Second replace each fileds to regexp grouping
+	quotedFormat := regexp.QuoteMeta(preparedFormat + " ")
+	re := regexp.MustCompile(`\\\$([A-Za-z0-9_]+)(?:\\\$[A-Za-z0-9_])*(\\?([^$\\A-Za-z0-9_]))`).ReplaceAllString(
+		quotedFormat, "(?P<$1>[^$3]*)$2")
+
+	// Finally remove placeholder
+	re = regexp.MustCompile(fmt.Sprintf(".%s", placeholder)).ReplaceAllString(re, "")
 	return &Parser{format, regexp.MustCompile(fmt.Sprintf("^%v", strings.Trim(re, " ")))}
 }
 
