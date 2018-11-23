@@ -54,6 +54,31 @@ func TestParser(t *testing.T) {
 			})
 		})
 
+		Convey("Test multiple fields concatenated toggle", func() {
+			format := `$remote_addr [$time_local] "$host$request_uri" $status`
+			parser := NewParser(format)
+
+			Convey("Ensure two fields concatenated toggle regexp ok", func() {
+				So(parser.format, ShouldEqual, format)
+				So(
+					parser.regexp.String(),
+					ShouldEqual,
+					`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<host>[^"]*)(?P<request_uri>[^"]*)" (?P<status>[^ ]*)`,
+				)
+			})
+
+			format = `$remote_addr [$time_local] "$host$request_uri$demo" $status`
+			parser = NewParser(format)
+			Convey("Ensure three fields concatenated toggle regexp ok", func() {
+				So(parser.format, ShouldEqual, format)
+				So(
+					parser.regexp.String(),
+					ShouldEqual,
+					`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<host>[^"]*)(?P<request_uri>[^"]*)(?P<demo>[^"]*)" (?P<status>[^ ]*)`,
+				)
+			})
+		})
+
 		Convey("Nginx format parser", func() {
 			expected := "$remote_addr - $remote_user [$time_local] \"$request\" $status \"$http_referer\" \"$http_user_agent\""
 			conf := strings.NewReader(`
