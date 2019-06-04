@@ -68,7 +68,7 @@ func (parser *Parser) ParseString(line string) (entry *Entry, err error) {
 // the given log format.
 func NewNginxParser(conf io.Reader, name string) (parser *Parser, err error) {
 	scanner := bufio.NewScanner(conf)
-	re := regexp.MustCompile(fmt.Sprintf(`^\s*log_format\s+%v\s+(.+)\s*$`, name))
+	re := regexp.MustCompile(fmt.Sprintf(`^\s*log_format\s+%s\s*(.*)\s*$`, name))
 	found := false
 	var format string
 	for scanner.Scan() {
@@ -81,13 +81,18 @@ func NewNginxParser(conf io.Reader, name string) (parser *Parser, err error) {
 				continue
 			}
 			found = true
+			// remove the "log_format <name>" from the line, leaving only the (potential)
+			// formatting directives.
 			line = formatDef[1]
 		} else {
 			line = scanner.Text()
 		}
-		// Look for a definition end
+		// Look for the end of the definition
 		re = regexp.MustCompile(`^\s*(.*?)\s*(;|$)`)
 		lineSplit := re.FindStringSubmatch(line)
+
+		// If there are any formatting directives on this line,
+		// add them to the format string
 		if l := len(lineSplit[1]); l > 2 {
 			format += lineSplit[1][1 : l-1]
 		}
