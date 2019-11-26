@@ -9,7 +9,7 @@ import (
 func TestParser(t *testing.T) {
 	Convey("Test Parser", t, func() {
 		Convey("Parse custom format", func() {
-			format := "$remote_addr [$time_local] \"$request\" $status"
+			format := "$remote_addr [$time_local] \"$request\" $status $http_x_forwarded_for"
 			parser := NewParser(format)
 
 			Convey("Ensure parser format is ok", func() {
@@ -18,16 +18,17 @@ func TestParser(t *testing.T) {
 
 			Convey("Test format to regexp translation", func() {
 				So(parser.regexp.String(), ShouldEqual,
-					`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<request>[^"]*)" (?P<status>[^ ]*)`)
+					`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<request>[^"]*)" (?P<status>[^ ]*) (?P<http_x_forwarded_for>[^, ]*(?:, ?[^, ]+)*)`)
 			})
 
 			Convey("ParseString", func() {
-				line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1" 200`
+				line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "GET /api/foo/bar HTTP/1.1" 200 1.2.3.4,5.6.7.8, 9.10.11.12`
 				expected := NewEntry(Fields{
-					"remote_addr": "89.234.89.123",
-					"time_local":  "08/Nov/2013:13:39:18 +0000",
-					"request":     "GET /api/foo/bar HTTP/1.1",
-					"status":      "200",
+					"remote_addr":          "89.234.89.123",
+					"time_local":           "08/Nov/2013:13:39:18 +0000",
+					"request":              "GET /api/foo/bar HTTP/1.1",
+					"status":               "200",
+					"http_x_forwarded_for": "1.2.3.4,5.6.7.8, 9.10.11.12",
 				})
 				entry, err := parser.ParseString(line)
 				So(err, ShouldBeNil)
@@ -35,12 +36,13 @@ func TestParser(t *testing.T) {
 			})
 
 			Convey("Handle empty values", func() {
-				line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "" 200`
+				line := `89.234.89.123 [08/Nov/2013:13:39:18 +0000] "" 200 1.2.3.4`
 				expected := NewEntry(Fields{
-					"remote_addr": "89.234.89.123",
-					"time_local":  "08/Nov/2013:13:39:18 +0000",
-					"request":     "",
-					"status":      "200",
+					"remote_addr":          "89.234.89.123",
+					"time_local":           "08/Nov/2013:13:39:18 +0000",
+					"request":              "",
+					"status":               "200",
+					"http_x_forwarded_for": "1.2.3.4",
 				})
 				entry, err := parser.ParseString(line)
 				So(err, ShouldBeNil)
