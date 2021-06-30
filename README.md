@@ -2,6 +2,10 @@
 
 `gonx` is Nginx access log reader library for `Go`. In fact you can use it for any format.
 
+## New owner needed 🙌
+ 
+I am not using golang as often as I used to, which makes the maintenance of this library an issue. I'll gladly share the ownership with anyone eager to maintain and evolve it.
+
 ## Usage
 
 The library provides `Reader` type and two constructors for it.
