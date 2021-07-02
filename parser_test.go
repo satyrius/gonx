@@ -81,8 +81,9 @@ func TestParser(t *testing.T) {
 
 		Convey("Nginx format parser", func() {
 			expected := "$remote_addr - $remote_user [$time_local] \"$request\" $status \"$http_referer\" \"$http_user_agent\""
-			conf := strings.NewReader(`
-				http {
+
+			testCases := []string{
+				`http {
 					include      conf/mime.types;
 					log_format   minimal  '$remote_addr [$time_local] "$request"';
 					log_format   main     '$remote_addr - $remote_user [$time_local] '
@@ -92,11 +93,40 @@ func TestParser(t *testing.T) {
 										'"$request" $status $bytes_sent '
 										'"$http_referer" "$http_user_agent" '
 										'"$http_range" "$sent_http_content_range"';
-				}
-			`)
-			parser, err := NewNginxParser(conf, "main")
-			So(err, ShouldBeNil)
-			So(parser.format, ShouldEqual, expected)
+				}`,
+
+				// Note that the line containing the log_format directive ("log_format main") has NO trailing whitespace.
+				// This is perfectly valid nginx config.
+				`http {
+					include      conf/mime.types;
+					log_format   minimal  '$remote_addr [$time_local] "$request"';
+					log_format   main 
+'$remote_addr - $remote_user [$time_local] '
+'"$request" $status '
+'"$http_referer" "$http_user_agent"';
+				}`,
+
+				// Similar to the above, but contains both trailing whitespace and empty lines in the log_format def
+				// This is perfectly valid nginx config.
+				`
+				http {
+					include      conf/mime.types;
+					log_format   minimal  '$remote_addr [$time_local] "$request"';
+					log_format   main   
+
+'$remote_addr - $remote_user [$time_local] '
+
+'"$request" $status '
+
+'"$http_referer" "$http_user_agent"';
+				}`,
+			}
+
+			for _, conf := range testCases {
+				parser, err := NewNginxParser(strings.NewReader(conf), "main")
+				So(err, ShouldBeNil)
+				So(parser.format, ShouldEqual, expected)
+			}
 		})
 	})
 }
