@@ -4,7 +4,7 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: ['go1.1', 'go1.2', 'go1.3', 'go1.4', 'go1.5']
+        go-version: [1.18.x, 1.19.x]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
