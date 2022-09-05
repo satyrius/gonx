@@ -1,8 +1,9 @@
 package gonx
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestEntry(t *testing.T) {
@@ -44,6 +45,23 @@ func TestEntry(t *testing.T) {
 				val, err = entry.FloatField("baz")
 				So(err, ShouldNotBeNil)
 				So(val, ShouldEqual, 0.0)
+			})
+
+			Convey("Get int values", func() {
+				// Get existings field
+				val, err := entry.IntField("foo")
+				So(err, ShouldBeNil)
+				So(val, ShouldEqual, 1)
+
+				// Type casting eror
+				val, err = entry.IntField("bar")
+				So(err, ShouldNotBeNil)
+				So(val, ShouldEqual, 0)
+
+				// Get field that does not exist
+				val, err = entry.IntField("baz")
+				So(err, ShouldNotBeNil)
+				So(val, ShouldEqual, 0)
 			})
 		})
 
