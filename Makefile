@@ -5,7 +5,7 @@ bench:
 	go test -bench .
 
 deps:
-	go get github.com/smartystreets/goconvey
+	go install github.com/smartystreets/goconvey@latest
 
 dev-deps:
 	go get github.com/nsf/gocode
