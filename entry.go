@@ -52,13 +52,24 @@ func (entry *Entry) FloatField(name string) (value float64, err error) {
 
 // IntField returns an entry field value as float64. Return nil if field does not exist
 // and conversion error if cannot cast a type.
-func (entry *Entry) IntField(name string) (value int64, err error) {
+func (entry *Entry) IntField64(name string) (value int64, err error) {
 	tmp, err := entry.Field(name)
 	if err == nil {
 		value, err = strconv.ParseInt(tmp, 0, 64)
 	}
 	return
 }
+
+// IntField returns an entry field value as IntField but only int not int64. Return nil if field does not exist
+// and conversion error if cannot cast a type.
+func (entry *Entry) IntField(name string) (value int, err error) {
+	tmp, err := entry.Field(name)
+	if err == nil {
+		value, err = strconv.Atoi(tmp)
+	}
+	return
+}
+
 
 // SetField sets the value of a field
 func (entry *Entry) SetField(name string, value string) {
