@@ -13,6 +13,7 @@ dev-deps:
 	go install code.google.com/p/rog-go/exp/cmd/godef
 
 examples:
+	go get github.com/satyrius/gonx
 	go run ./example/common/common.go
 	go run ./example/nginx/nginx.go
 	cat ./example/access.log | go run ./example/nginx/nginx.go --log=-

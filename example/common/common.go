@@ -1,12 +1,16 @@
+//go:build exclude
+// +build exclude
+
 package main
 
 import (
-	gonx "../.."
 	"flag"
 	"fmt"
 	"io"
 	"os"
 	"strings"
+
+	gonx "github.com/satyrius/gonx"
 )
 
 var format string
