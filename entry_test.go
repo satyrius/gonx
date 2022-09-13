@@ -47,6 +47,23 @@ func TestEntry(t *testing.T) {
 				So(val, ShouldEqual, 0.0)
 			})
 
+			Convey("Get int64 values", func() {
+				// Get existings field
+				val, err := entry.IntField64("foo")
+				So(err, ShouldBeNil)
+				So(val, ShouldEqual, 1)
+
+				// Type casting eror
+				val, err = entry.IntField64("bar")
+				So(err, ShouldNotBeNil)
+				So(val, ShouldEqual, 0)
+
+				// Get field that does not exist
+				val, err = entry.IntField64("baz")
+				So(err, ShouldNotBeNil)
+				So(val, ShouldEqual, 0)
+			})
+
 			Convey("Get int values", func() {
 				// Get existings field
 				val, err := entry.IntField("foo")
