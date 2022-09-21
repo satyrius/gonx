@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -12,6 +13,8 @@ import (
 )
 
 func BenchmarkGonxReadEntry(b *testing.B) {
+	numcpu := runtime.NumCPU()
+	runtime.GOMAXPROCS(numcpu + 1)
 	start := time.Now()
 	count := 0
 	wd, err := os.Getwd()
