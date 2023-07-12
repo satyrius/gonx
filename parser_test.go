@@ -13,11 +13,11 @@ func TestParser(t *testing.T) {
 			parser := NewParser(format)
 
 			Convey("Ensure parser format is ok", func() {
-				So(parser.format, ShouldEqual, format)
+				So(parser.Format, ShouldEqual, format)
 			})
 
 			Convey("Test format to regexp translation", func() {
-				So(parser.regexp.String(), ShouldEqual,
+				So(parser.Regexp.String(), ShouldEqual,
 					`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<request>[^"]*)" (?P<status>[^ ]*)`)
 			})
 
@@ -59,9 +59,9 @@ func TestParser(t *testing.T) {
 			parser := NewParser(format)
 
 			Convey("Ensure two fields concatenated toggle regexp ok", func() {
-				So(parser.format, ShouldEqual, format)
+				So(parser.Format, ShouldEqual, format)
 				So(
-					parser.regexp.String(),
+					parser.Regexp.String(),
 					ShouldEqual,
 					`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<host>[^"]*)(?P<request_uri>[^"]*)" (?P<status>[^ ]*)`,
 				)
@@ -70,9 +70,9 @@ func TestParser(t *testing.T) {
 			format = `$remote_addr [$time_local] "$host$request_uri$demo" $status`
 			parser = NewParser(format)
 			Convey("Ensure three fields concatenated toggle regexp ok", func() {
-				So(parser.format, ShouldEqual, format)
+				So(parser.Format, ShouldEqual, format)
 				So(
-					parser.regexp.String(),
+					parser.Regexp.String(),
 					ShouldEqual,
 					`^(?P<remote_addr>[^ ]*) \[(?P<time_local>[^]]*)\] "(?P<host>[^"]*)(?P<request_uri>[^"]*)(?P<demo>[^"]*)" (?P<status>[^ ]*)`,
 				)
@@ -96,7 +96,7 @@ func TestParser(t *testing.T) {
 			`)
 			parser, err := NewNginxParser(conf, "main")
 			So(err, ShouldBeNil)
-			So(parser.format, ShouldEqual, expected)
+			So(parser.Format, ShouldEqual, expected)
 		})
 	})
 }
