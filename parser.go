@@ -15,8 +15,8 @@ type StringParser interface {
 
 // Parser is a log record parser. Use specific constructors to initialize it.
 type Parser struct {
-	format string
-	regexp *regexp.Regexp
+	Format string
+	Regexp *regexp.Regexp
 }
 
 // NewParser returns a new Parser, use given log format to create its internal
@@ -45,7 +45,7 @@ func NewParser(format string) *Parser {
 // ParseString parses a log file line using internal format regexp. If a line
 // does not match the given format an error will be returned.
 func (parser *Parser) ParseString(line string) (entry *Entry, err error) {
-	re := parser.regexp
+	re := parser.Regexp
 	fields := re.FindStringSubmatch(line)
 	if fields == nil {
 		err = fmt.Errorf("access log line '%v' does not match given format '%v'", line, re)
