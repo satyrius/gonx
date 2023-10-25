@@ -20,6 +20,11 @@ func NewEmptyEntry() *Entry {
 	return &Entry{make(Fields)}
 }
 
+// NewWithSize create Entry with fixed size
+func NewWithSize(size int) *Entry {
+	return &Entry{make(Fields, size)}
+}
+
 // NewEntry creates an Entry with fiven fields
 func NewEntry(fields Fields) *Entry {
 	return &Entry{fields}
@@ -69,7 +74,6 @@ func (entry *Entry) IntField(name string) (value int, err error) {
 	}
 	return
 }
-
 
 // SetField sets the value of a field
 func (entry *Entry) SetField(name string, value string) {
