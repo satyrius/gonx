@@ -1,6 +1,6 @@
 module github.com/satyrius/gonx
 
-go 1.17
+go 1.21
 
 require github.com/smartystreets/goconvey v1.7.2
 
