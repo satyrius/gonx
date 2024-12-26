@@ -97,6 +97,60 @@ func (r *Avg) Reduce(input chan *Entry, output chan *Entry) {
 	close(output)
 }
 
+// Min implements the Reducer interface for min values calculation
+type Min struct {
+	Fields []string
+}
+
+// Reduce calculates the min values for input channel Entries, using configured Fields
+// of the struct. Write result to the output channel as map[string]float64
+func (r *Min) Reduce(input chan *Entry, output chan *Entry) {
+	min := make(map[string]float64)
+	for entry := range input {
+		for _, name := range r.Fields {
+			val, err := entry.FloatField(name)
+			if err == nil {
+				if val < min[name] || min[name] == 0 {
+					min[name] = val
+				}
+			}
+		}
+	}
+	entry := NewEmptyEntry()
+	for name, val := range min {
+		entry.SetFloatField(name, val)
+	}
+	output <- entry
+	close(output)
+}
+
+// Max implements the Reducer interface for min values calculation
+type Max struct {
+	Fields []string
+}
+
+// Reduce calculates the min values for input channel Entries, using configured Fields
+// of the struct. Write result to the output channel as map[string]float64
+func (r *Max) Reduce(input chan *Entry, output chan *Entry) {
+	max := make(map[string]float64)
+	for entry := range input {
+		for _, name := range r.Fields {
+			val, err := entry.FloatField(name)
+			if err == nil {
+				if val > max[name] {
+					max[name] = val
+				}
+			}
+		}
+	}
+	entry := NewEmptyEntry()
+	for name, val := range max {
+		entry.SetFloatField(name, val)
+	}
+	output <- entry
+	close(output)
+}
+
 // Chain implements the Reducer interface for chaining other reducers
 type Chain struct {
 	filters  []Filter
