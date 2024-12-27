@@ -1,8 +1,9 @@
 package gonx
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestReducer(t *testing.T) {
@@ -98,6 +99,44 @@ func TestReducer(t *testing.T) {
 				value, err = result.FloatField("bar")
 				So(err, ShouldBeNil)
 				So(value, ShouldEqual, (2+5+8)/total)
+
+				_, err = result.Field("buz")
+				So(err, ShouldNotBeNil)
+			})
+
+			Convey("Min reducer", func() {
+				reducer := &Min{[]string{"foo", "bar"}}
+				reducer.Reduce(input, output)
+
+				result, ok := <-output
+				So(ok, ShouldBeTrue)
+
+				value, err := result.FloatField("foo")
+				So(err, ShouldBeNil)
+				So(value, ShouldEqual, 1)
+
+				value, err = result.FloatField("bar")
+				So(err, ShouldBeNil)
+				So(value, ShouldEqual, 2)
+
+				_, err = result.Field("buz")
+				So(err, ShouldNotBeNil)
+			})
+
+			Convey("Max reducer", func() {
+				reducer := &Max{[]string{"foo", "bar"}}
+				reducer.Reduce(input, output)
+
+				result, ok := <-output
+				So(ok, ShouldBeTrue)
+
+				value, err := result.FloatField("foo")
+				So(err, ShouldBeNil)
+				So(value, ShouldEqual, 7)
+
+				value, err = result.FloatField("bar")
+				So(err, ShouldBeNil)
+				So(value, ShouldEqual, 8)
 
 				_, err = result.Field("buz")
 				So(err, ShouldNotBeNil)
